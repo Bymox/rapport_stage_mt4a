@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>RF Chain Calculator — NF / OP1dB / Gain (instantané)</title>
+<style>
+  :root{font-family:system-ui,"Segoe UI",Roboto,Helvetica,Arial;color:#111}
+  body{margin:14px;line-height:1.45;background:#f7f8fb}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  h1{font-size:1.25rem;margin:2px 0}
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:12px;margin-top:10px}
+  .card{background:#fff;border:1px solid #e3e6ea;border-radius:8px;padding:12px}
+  .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  label{min-width:110px;color:#222}
+  input[type="number"], input[type="text"], select { padding:6px;border-radius:6px;border:1px solid #cfcfcf }
+  button{padding:6px 10px;border-radius:6px;border:0;background:#0b74de;color:#fff;cursor:pointer}
+  button.ghost{background:#666}
+  .stage{border-radius:6px;padding:8px;border:1px dashed #e6e9ec;margin-bottom:8px;background:#fcfeff}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+  table{border-collapse:collapse;width:100%;margin-top:8px}
+  th,td{border:1px solid #eee;padding:6px;text-align:center;font-size:0.95rem}
+  th{background:#fafbfd}
+  .metric{border-radius:8px;padding:8px;background:#fafafa;border:1px solid #eee;min-width:140px;margin-bottom:8px}
+  .val{font-weight:700;font-size:1.05rem}
+  .log{white-space:pre-wrap;background:#111;color:#fff;padding:8px;border-radius:6px;font-family:monospace;font-size:0.85rem; max-height:220px; overflow:auto}
+  .eq{font-family:serif;background:#fbfdff;border-left:3px solid #0b74de;padding:8px;border-radius:4px}
+  footer{margin-top:12px;color:#444;font-size:0.9rem}
+  .author{font-size:0.9rem;color:#333;margin-top:6px}
+  .sectionTitle{font-weight:700;margin-bottom:8px}
+  @media(max-width:980px){ .layout{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>RF Chain Calculator — calcul instantané</h1>
+    <div class="small">Gain / NF (Friis) / OP1dB &amp; IP1dB — interface interactive</div>
+  </div>
+  <div style="text-align:right">
+    <div style="font-weight:600">François Bordas</div>
+    <div style="font-size:0.9rem;color:#444">francois.bordas@etu.univ-amu.fr</div>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- left: interface -->
+  <div>
+    <div class="card">
+      <div class="controls">
+        <label>Nombre d'étages :</label>
+        <select id="nStages"></select>
+        <button id="btnAdd">Ajouter un étage</button>
+        <button id="btnReset" class="ghost">Réinitialiser</button>
+        <div style="flex:1"></div>
+        <span class="small">Les calculs sont faits instantanément.</span>
+      </div>
+
+      <!-- grouped controls -->
+      <div id="stagesContainer"></div>
+
+      <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+        <div class="metric"><div class="small">Gain total</div><div id="gainTotal" class="val">— dB</div></div>
+        <div class="metric"><div class="small">NF total</div><div id="nfTotal" class="val">— dB</div></div>
+        <div class="metric"><div class="small">OP1dB sortie</div><div id="op1dB_out" class="val">— dBm</div></div>
+        <div class="metric"><div class="small">IP1dB entrée</div><div id="ip1dB_in" class="val">— dBm</div></div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="sectionTitle">Tableau récapitulatif</div>
+        <table id="tableStages">
+          <thead><tr><th>#</th><th>Type</th><th>Gain (dB)</th><th>NF / Insertion (dB)</th><th>OP1dB (dBm)</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:12px">Détails & trace</h3>
+      <div id="log" class="log"></div>
+    </div>
+  </div>
+
+  <!-- right: equations & aide -->
+  <aside>
+    <div class="card">
+      <div class="sectionTitle">Équations (simplifiées)</div>
+      <div class="eq">
+        <div style="font-weight:700">Gain total (dB)</div>
+        <div>G<sub>tot</sub>(dB) = Σ G<sub>i</sub>(dB) &nbsp;&nbsp; (pour un filtre utiliser G = −InsertionLoss)</div>
+      </div>
+      <div class="eq" style="margin-top:8px">
+        <div style="font-weight:700">NF total (Friis)</div>
+        <div>N F_{tot} (dB) = 10 log<sub>10</sub> ( NF1_lin + (NF2_lin−1)/G1_lin + ... )</div>
+        <div class="small" style="margin-top:6px">avec NF_lin = 10^{NF_dB/10} et G_lin = 10^{G_dB/10}.</div>
+      </div>
+      <div class="eq" style="margin-top:8px">
+        <div style="font-weight:700">OP1dB combiné (approx.)</div>
+        <div>1 / P<sub>tot</sub> = Σ 1 / (P1_i · Gain_after_i)  → OP1dB_out (dBm) = 10 log<sub>10</sub>(P<sub>tot</sub>)</div>
+        <div class="small" style="margin-top:6px">P en mW (conversion dBm→mW utilisée).</div>
+      </div>
+      <div class="eq" style="margin-top:8px">
+        <div style="font-weight:700">IP1dB d'entrée</div>
+        <div>IP1dB(in) = OP1dB(out) − G<sub>tot</sub>(dB)</div>
+      </div>
+
+      <div style="margin-top:12px" class="sectionTitle">Rappels par type</div>
+      <ul style="padding-left:16px">
+        <li><b>Filter</b> : renseigner <i>Insertion loss (dB)</i> et <i>OP1dB</i>. (NF = Insertion loss)</li>
+        <li><b>Ampli</b> : renseigner <i>Gain (dB)</i>, <i>NF (dB)</i>, <i>OP1dB</i>.</li>
+        <li><b>Atténuateur</b> : renseigner <i>Atténuation (dB)</i> et <i>OP1dB</i>; NF = Atténuation.</li>
+        <li><b>Switch</b> : renseigner <i>Atténuation (dB)</i> (affiché comme gain négatif) et <i>OP1dB</i>; NF = Atténuation.</li>
+        <li><b>Mixer</b> : renseigner <i>Conversion loss (dB)</i>, <i>NF (dB)</i>, <i>OP1dB</i>.</li>
+      </ul>
+
+      <div class="author" style="margin-top:12px">
+        Auteur : François Bordas — <a href="mailto:francois.bordas@etu.univ-amu.fr">francois.bordas@etu.univ-amu.fr</a>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+/* ---------- utilitaires ---------- */
+function dbToLin(db) {
+  if (!isFinite(db)) return 1e300;
+  if (db > 500) return 1e300;
+  return Math.pow(10, db / 10);
+}
+function linToDb(lin) {
+  if (lin <= 0) return -Infinity;
+  return 10 * Math.log10(lin);
+}
+
+/* ---------- DOM refs ---------- */
+const selectN = document.getElementById('nStages');
+const stagesContainer = document.getElementById('stagesContainer');
+const tableBody = document.querySelector('#tableStages tbody');
+const logEl = document.getElementById('log');
+const gainEl = document.getElementById('gainTotal');
+const nfEl = document.getElementById('nfTotal');
+const opOutEl = document.getElementById('op1dB_out');
+const ipInEl = document.getElementById('ip1dB_in');
+const btnAdd = document.getElementById('btnAdd');
+const btnReset = document.getElementById('btnReset');
+
+let stages = [];
+
+/* ---------- paramètres init ---------- */
+for (let i=1;i<=30;i++){ const o=document.createElement('option'); o.value=i; o.textContent=i; selectN.appendChild(o); }
+selectN.value = 4;
+
+/* create default stage object */
+function defaultStage(i){
+  return {
+    name: `S${i+1}`,
+    type: 'ampli',
+    gain_dB: 15,
+    nf_dB: 3,
+    insertion_loss_dB: 1,
+    op1db_dBm: 23
+  };
+}
+
+/* build one stage card */
+function makeStageCard(idx, data){
+  const root = document.createElement('div');
+  root.className='stage';
+  root.dataset.index = idx;
+
+  // header row
+  const r1 = document.createElement('div'); r1.className='row';
+  r1.innerHTML = `
+    <label><b>Étape ${idx+1}</b></label>
+    <input type="text" class="s_name" value="${data.name}" style="width:130px">
+    <label style="min-width:60px">Type :</label>
+    <select class="s_type">
+      <option value="ampli">ampli</option>
+      <option value="filter">filter</option>
+      <option value="atten">atten</option>
+      <option value="switch">switch</option>
+      <option value="mixer">mixer</option>
+    </select>
+    <button class="remove" style="margin-left:auto;background:#c0392b;color:#fff;padding:6px;border-radius:6px;border:0">Suppr</button>
+  `;
+  root.appendChild(r1);
+
+  // params area
+  const params = document.createElement('div');
+  params.innerHTML = `
+    <div class="row">
+      <label class="lab_gain">Gain (dB) :</label>
+      <input type="number" step="0.1" class="s_gain" value="${data.gain_dB}" style="width:90px">
+      <label class="lab_nf">NF (dB) :</label>
+      <input type="number" step="0.1" class="s_nf" value="${data.nf_dB}" style="width:90px">
+      <label class="lab_insertion">Insertion/Attén (dB) :</label>
+      <input type="number" step="0.1" class="s_insertion" value="${data.insertion_loss_dB}" style="width:90px">
+    </div>
+    <div class="row">
+      <label>OP1dB (dBm) :</label>
+      <input type="number" step="0.01" class="s_p1" value="${data.op1db_dBm}" style="width:100px">
+      <div class="small" style="margin-left:8px;color:#666">Remplir selon type</div>
+    </div>
+  `;
+  root.appendChild(params);
+
+  // set type and adjust visible fields
+  const sel = root.querySelector('.s_type');
+  sel.value = data.type;
+  function updateVis(){
+    const t = sel.value;
+    const lab_gain = root.querySelector('.lab_gain');
+    const lab_nf = root.querySelector('.lab_nf');
+    const lab_ins = root.querySelector('.lab_insertion');
+    const inp_gain = root.querySelector('.s_gain');
+    const inp_nf = root.querySelector('.s_nf');
+    const inp_ins = root.querySelector('.s_insertion');
+
+    // default hide all then show needed
+    lab_gain.style.display = 'inline-block'; inp_gain.style.display = 'inline-block';
+    lab_nf.style.display = 'inline-block'; inp_nf.style.display = 'inline-block';
+    lab_ins.style.display = 'inline-block'; inp_ins.style.display = 'inline-block';
+
+    if (t === 'filter') {
+      // only insertion & op1; NF = insertion; hide gain
+      lab_gain.style.display='none'; inp_gain.style.display='none';
+      lab_ins.textContent = 'Insertion loss (dB) :';
+      lab_nf.style.display='none'; inp_nf.style.display='none';
+    } else if (t === 'ampli') {
+      lab_gain.textContent='Gain (dB) :';
+      lab_ins.style.display='none'; inp_ins.style.display='none';
+      lab_nf.style.display='inline-block'; inp_nf.style.display='inline-block';
+    } else if (t === 'atten') {
+      // only insertion (attenuation) and OP1dB; NF = attenuation
+      lab_gain.style.display='none'; inp_gain.style.display='none';
+      lab_ins.textContent = 'Atténuation (dB) :'; lab_nf.style.display='none'; inp_nf.style.display='none';
+    } else if (t === 'switch') {
+      // treat like attenuator (insertion) but show as Atténuation
+      lab_gain.style.display='none'; inp_gain.style.display='none';
+      lab_ins.textContent = 'Atténuation (dB) :'; lab_nf.style.display='none'; inp_nf.style.display='none';
+    } else if (t === 'mixer') {
+      // mixer: conversion loss + NF + OP1dB
+      lab_gain.style.display='none'; inp_gain.style.display='none';
+      lab_ins.textContent = 'Conversion loss (dB) :'; lab_nf.style.display='inline-block'; inp_nf.style.display='inline-block';
+    }
+  }
+  updateVis();
+
+  // remove
+  root.querySelector('.remove').addEventListener('click', ()=>{
+    const i = parseInt(root.dataset.index,10);
+    stages.splice(i,1); renderStages();
+  });
+
+  // sync back function
+  function writeBack(){
+    const i = parseInt(root.dataset.index,10);
+    const s = stages[i];
+    s.name = root.querySelector('.s_name').value;
+    s.type = root.querySelector('.s_type').value;
+    s.gain_dB = parseFloat(root.querySelector('.s_gain').value) || 0;
+    s.nf_dB = parseFloat(root.querySelector('.s_nf').value) || Math.abs(s.gain_dB || 0);
+    s.insertion_loss_dB = parseFloat(root.querySelector('.s_insertion').value) || 0;
+    s.op1db_dBm = parseFloat(root.querySelector('.s_p1').value) || 1000;
+    renderSummaryTable();
+    computeAll(); // instant compute on any change
+  }
+
+  // attach events
+  root.querySelectorAll('input,select').forEach(el=>{
+    el.addEventListener('input', ()=>{
+      if (el.classList.contains('s_type')) updateVis();
+      writeBack();
+    });
+  });
+
+  return root;
+}
+
+/* render all stages */
+function renderStages(){
+  stagesContainer.innerHTML='';
+  stages.forEach((s, idx)=>{
+    const card = makeStageCard(idx, s);
+    stagesContainer.appendChild(card);
+  });
+  selectN.value = stages.length;
+  renderSummaryTable();
+}
+
+/* summary table */
+function renderSummaryTable(){
+  tableBody.innerHTML='';
+  stages.forEach((s, idx)=>{
+    let gainShown = 0, nfShown = 0;
+    if (s.type === 'filter' || s.type === 'atten' || s.type === 'switch' || s.type === 'mixer') {
+      gainShown = -(s.insertion_loss_dB||0);
+      nfShown = (s.type==='filter' || s.type==='atten' || s.type==='switch') ? (s.insertion_loss_dB||0) : (s.nf_dB||0);
+    } else {
+      gainShown = s.gain_dB||0;
+      nfShown = s.nf_dB||0;
+    }
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${idx+1}</td><td>${s.name} (${s.type})</td>
+      <td>${gainShown.toFixed(2)}</td><td>${nfShown.toFixed(2)}</td><td>${(s.op1db_dBm||0).toFixed(2)}</td>`;
+    tableBody.appendChild(tr);
+  });
+}
+
+/* core calculations */
+function calcNF(chain){
+  if (!chain.length) return NaN;
+  let nf_tot = chain[0].nf_lin;
+  let g_prod = chain[0].gain_lin;
+  for (let i=1;i<chain.length;i++){
+    nf_tot += (chain[i].nf_lin - 1) / g_prod;
+    g_prod *= chain[i].gain_lin;
+  }
+  return linToDb(nf_tot);
+}
+
+function calcP1db(chain){
+  const N = chain.length;
+  if (N===0) return -Infinity;
+  const gain_after = new Array(N).fill(1.0);
+  let prod = 1.0;
+  for (let idx=N-1; idx>=0; --idx){
+    gain_after[idx] = prod;
+    prod *= chain[idx].gain_lin;
+  }
+  let inv_sum = 0;
+  for (let i=0;i<N;i++){
+    const p = chain[i].p1_lin; if (!isFinite(p) || p<=0) continue;
+    inv_sum += 1 / (p * gain_after[i]);
+  }
+  if (inv_sum === 0) return Infinity;
+  const Ptot = 1 / inv_sum;
+  return linToDb(Ptot);
+}
+
+/* build chain objects and compute */
+function computeAll(){
+  if (!stages.length) return;
+  const chainForNF = [], chainForP1 = [];
+  const logs = [];
+
+  stages.forEach((s, idx)=>{
+    let gain_dB=0, nf_dB=0;
+    if (s.type === 'filter' || s.type === 'atten' || s.type === 'switch' || s.type==='mixer') {
+      gain_dB = -(s.insertion_loss_dB||0);
+      if (s.type === 'mixer') nf_dB = s.nf_dB||0;
+      else nf_dB = s.insertion_loss_dB||0;
+    } else {
+      gain_dB = s.gain_dB||0;
+      nf_dB = s.nf_dB||Math.abs(gain_dB);
+    }
+    const op1 = (s.op1db_dBm||1000);
+    const gain_lin = dbToLin(gain_dB);
+    const nf_lin = dbToLin(nf_dB);
+    const p1_lin = (op1>500) ? 1e300 : dbToLin(op1);
+
+    chainForNF.push({gain_lin, nf_lin, name: s.name});
+    chainForP1.push({gain_lin, p1_lin, name:s.name, op1:op1});
+
+    logs.push(`#${idx+1} ${s.name}(${s.type}) — gain ${gain_dB.toFixed(2)} dB, NF ${nf_dB.toFixed(2)} dB, OP1dB ${op1.toFixed(2)} dBm`);
+  });
+
+  // total gain
+  const gprod = chainForNF.reduce((a,c)=>a*c.gain_lin,1);
+  const gainTotal_dB = linToDb(gprod);
+
+  // nf total
+  const nfTotal_dB = calcNF(chainForNF);
+
+  // P1dB out
+  const p1_out = calcP1db(chainForP1);
+
+  // IP1dB in
+  const ip1_in = p1_out - gainTotal_dB;
+
+  // show
+  gainEl.textContent = (isFinite(gainTotal_dB)?gainTotal_dB.toFixed(2):'—') + ' dB';
+  nfEl.textContent = (isFinite(nfTotal_dB)?nfTotal_dB.toFixed(2):'—') + ' dB';
+  opOutEl.textContent = (isFinite(p1_out)?p1_out.toFixed(2):'—') + ' dBm';
+  ipInEl.textContent = (isFinite(ip1_in)?ip1_in.toFixed(2):'—') + ' dBm';
+
+  // log
+  const lines = ['--- Configuration ---', ...logs, '', `Gain total (dB) = ${gainTotal_dB.toFixed(3)}`,
+    `NF total (dB, Friis) = ${nfTotal_dB.toFixed(3)}`, `OP1dB sortie (dBm) = ${p1_out.toFixed(3)}`, `IP1dB entrée (dBm) = ${ip1_in.toFixed(3)}`];
+  logEl.textContent = lines.join('\n');
+  renderSummaryTable();
+}
+
+/* events */
+selectN.addEventListener('change', ()=>{
+  const n = parseInt(selectN.value,10);
+  if (n > stages.length){
+    for (let i=stages.length;i<n;i++) stages.push(defaultStage(i));
+  } else if (n < stages.length){
+    stages.splice(n);
+  }
+  renderStages();
+  computeAll();
+});
+btnAdd.addEventListener('click', ()=>{
+  stages.push(defaultStage(stages.length));
+  renderStages(); computeAll();
+});
+btnReset.addEventListener('click', ()=>{
+  if(!confirm('Réinitialiser tout ?')) return;
+  stages = [];
+  for (let i=0;i<4;i++) stages.push(defaultStage(i));
+  renderStages(); computeAll();
+});
+
+/* initialisation */
+(function init(){
+  stages = [];
+  for (let i=0;i<4;i++) stages.push(defaultStage(i));
+  renderStages();
+  computeAll();
+})();
+
+</script>
+
+<footer style="padding:8px 12px">
+  <div>Document interactif — calculs instantanés pour conception de chaîne RF.</div>
+  <div class="author">François Bordas — <a href="mailto:francois.bordas@etu.univ-amu.fr">francois.bordas@etu.univ-amu.fr</a></div>
+</footer>
+</body>
+</html>
