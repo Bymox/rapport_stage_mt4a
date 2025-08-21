@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Mon test interactif</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+    button { padding: 10px 20px; font-size: 16px; }
+    #message { margin-top: 20px; font-size: 20px; color: darkblue; }
+  </style>
+</head>
+<body>
+  <h1>Bienvenue sur mon site interactif 🚀</h1>
+  <p>Clique sur le bouton ci-dessous pour voir l'interaction :</p>
+  
+  <button onclick="changerTexte()">Clique-moi !</button>
+  <div id="message"></div>
+
+  <script>
+    function changerTexte() {
+      document.getElementById("message").innerText = "Bravo 🎉 tu as déclenché une interaction !";
+    }
+  </script>
+</body>
+</html>
