@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Interactive — Spurious / Phase noise toy</title>
+<style>
+  body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;line-height:1.35;margin:18px;color:#111}
+  h1{font-size:1.25rem;margin:0 0 8px}
+  .card{border:1px solid #ddd;border-radius:8px;padding:12px;margin:10px 0;box-shadow:0 1px 0 rgba(0,0,0,0.03)}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  label{font-size:0.9rem;min-width:160px;color:#222}
+  input[type=range]{width:320px}
+  .out{font-weight:700;font-size:1.05rem}
+  .small{font-size:0.85rem;color:#555}
+  canvas{border-radius:6px;background:#fff;margin-top:8px}
+  .mini{font-size:0.85rem;color:#444}
+  footer{margin-top:18px;font-size:0.85rem;color:#666}
+  .btn{display:inline-block;padding:6px 10px;border-radius:6px;background:#0b74de;color:#fff;text-decoration:none}
+</style>
+</head>
+<body>
+
+<h1>Interactive — estimation du spurious</h1>
+
+<div class="card">
+  <div class="small">But : visualiser rapidement comment la puissance RF influe sur un spurious d'ordre <em>n</em> et sur sa suppression.</div>
+</div>
+
+<div class="card">
+  <div class="row">
+    <label>Puissance RF référence <span class="small">(P<sub>RF,ref</sub>)</span> :</label>
+    <input id="pref" type="number" value="-10" step="1" style="width:90px"> dBm
+  </div>
+  <div class="row" style="margin-top:8px">
+    <label>Puissance RF courante (P<sub>RF,new</sub>) :</label>
+    <input id="pnew" type="range" min="-40" max="0" value="-20" step="0.5">
+    <div class="out" id="pnew_val">-20 dBm</div>
+  </div>
+
+  <div class="row" style="margin-top:8px">
+    <label>Ordre RF du spurious (n):</label>
+    <input id="n" type="number" min="1" max="10" value="2" step="1" style="width:70px">
+    <div class="small" style="margin-left:6px">n est le coefficient devant RF dans m·OL ± n·RF</div>
+  </div>
+
+  <div class="row" style="margin-top:8px">
+    <label>Spurious référence (P<sub>spur,ref</sub>) :</label>
+    <input id="pspur_ref" type="number" value="-73" step="0.1" style="width:100px"> dBm
+    <div class="small" style="margin-left:8px">Valeur associée à P<sub>RF,ref</sub></div>
+  </div>
+
+  <div style="margin-top:10px">
+    <button class="btn" id="btn_compute">Mettre à jour</button>
+  </div>
+
+  <div style="margin-top:12px">
+    <div class="mini">Résultats :</div>
+    <div>ΔP<sub>RF</sub> = <span id="dprf">-10</span> dB</div>
+    <div>P<sub>spur,new</sub> = <span id="pspur_new" class="out">-93.0</span> dBm</div>
+    <div>Suppression relative (dBc) = <span id="supp" class="out">73.0</span> dBc</div>
+  </div>
+
+  <canvas id="vis" width="560" height="120"></canvas>
+  <div class="small">Barres : porteuse RF (gauche), spurious (droite). Échelle relative illustrative.</div>
+</div>
+
+<footer>
+  <div>Instructions : sauvegarder ce fichier HTML et l'ouvrir dans un navigateur. Peut être lié depuis le PDF (lien externe).</div>
+</footer>
+
+<script>
+  // utilitaires
+  const el = id => document.getElementById(id);
+  const pref = el('pref'), pnew = el('pnew'), pnew_val = el('pnew_val');
+  const nInp = el('n'), pspur_ref = el('pspur_ref');
+  const dprfEl = el('dprf'), pspurNewEl = el('pspur_new'), suppEl = el('supp'), btn = el('btn_compute');
+  const cvs = el('vis'); const ctx = cvs.getContext('2d');
+
+  function computeAndDraw(){
+    const P_ref = parseFloat(pref.value);
+    const P_new = parseFloat(pnew.value);
+    const n = Math.max(1, Math.round(parseFloat(nInp.value)));
+    const P_spur_ref = parseFloat(pspur_ref.value);
+
+    const delta = P_new - P_ref; // en dB
+    // formule : P_spur_new = P_spur_ref + n * deltaP_RF
+    const P_spur_new = P_spur_ref + n * delta;
+    // suppression dBc relative : S_new = P_RF_new - P_spur_new
+    const S_new = P_new - P_spur_new;
+
+    dprfEl.textContent = (delta>=0?'+':'') + delta.toFixed(2);
+    pspurNewEl.textContent = P_spur_new.toFixed(2) + ' dBm';
+    suppEl.textContent = S_new.toFixed(2) + ' dBc';
+
+    // draw simple bars
+    ctx.clearRect(0,0,cvs.width,cvs.height);
+    const pad = 20, w = cvs.width - pad*2;
+    // map dBm range [-120 .. 10] -> height
+    const mapH = v => {
+      const min=-120, max=10;
+      const t = Math.min(1, Math.max(0, (v - min)/(max-min)));
+      return 8 + t*(cvs.height-30);
+    };
+    const x1 = pad + 0.12*w, x2 = pad + 0.62*w;
+    // draw axes labels
+    ctx.fillStyle = '#222'; ctx.font='12px system-ui';
+    ctx.fillText('RF porteuse', x1-28, cvs.height-6);
+    ctx.fillText('Spurious', x2-18, cvs.height-6);
+
+    // draw bars background
+    ctx.fillStyle = '#eee';
+    ctx.fillRect(x1-20, 8, 40, cvs.height-30);
+    ctx.fillRect(x2-20, 8, 40, cvs.height-30);
+
+    // RF bar (left)
+    const h1 = mapH(P_new);
+    ctx.fillStyle = '#0b74de';
+    ctx.fillRect(x1-20, cvs.height-10-h1, 40, h1);
+
+    // spur bar (right)
+    const h2 = mapH(P_spur_new);
+    ctx.fillStyle = '#de3c3c';
+    ctx.fillRect(x2-20, cvs.height-10-h2, 40, h2);
+
+    // numeric labels
+    ctx.fillStyle='#000'; ctx.font='11px system-ui';
+    ctx.fillText(P_new.toFixed(1)+' dBm', x1-34, cvs.height-12-h1);
+    ctx.fillText(P_spur_new.toFixed(1)+' dBm', x2-36, cvs.height-12-h2);
+  }
+
+  // handling inputs
+  pnew.addEventListener('input', ()=> pnew_val.textContent = pnew.value + ' dBm');
+  btn.addEventListener('click', computeAndDraw);
+  // initial draw
+  computeAndDraw();
+</script>
+</body>
+</html>
