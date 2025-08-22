@@ -149,7 +149,7 @@
 
 
 
-      <div class="author" id="footer_author">Auteur : François Bordas — <a href="mailto:francois.bordas@etu.univ-amu.fr">francois.bordas@etu.univ-amu.fr</a></div>
+      <div class="author" id="footer_author">Auteur : François Bordas — </div>
     </div>
   </aside>
 </div>
@@ -393,8 +393,8 @@ function applyLang(lang) {
   // Footer auteur
   document.getElementById('footer_author').innerHTML =
     (lang === 'fr')
-      ? 'Auteur : François Bordas — <a href="mailto:francois.bordas@etu.univ-amu.fr">francois.bordas@etu.univ-amu.fr</a>'
-      : 'Author: François Bordas — <a href="mailto:francois.bordas@etu.univ-amu.fr">francois.bordas@etu.univ-amu.fr</a>';
+      ? 'Auteur : François Bordas — '
+      : 'Author: François Bordas — ';
 
   // Re-render
   renderStages();
@@ -516,7 +516,7 @@ document.getElementById('theme').addEventListener('change',(e)=>{ applyTheme(e.t
 
 <footer style="padding:8px 12px">
   <div id="footer_text">Document interactif — calculs instantanés pour conception de chaîne RF.</div>
-  <div class="author">François Bordas — <a href="mailto:francois.bordas@etu.univ-amu.fr">francois.bordas@etu.univ-amu.fr</a></div>
+  <div class="author">François Bordas — </div>
 </footer>
 </body>
 </html>
