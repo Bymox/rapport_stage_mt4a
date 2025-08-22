@@ -2,56 +2,169 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Mon test interactif</title>
+  <title>Outils RF</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin-top: 60px;
-      background: #f5f7fa;
+      margin:0; font-family: 'Segoe UI', sans-serif;
+      background:#f9fafb; color:#222; line-height:1.6;
+      transition: background .3s, color .3s;
     }
-    h1 {
-      color: #1d3557;
+    body.dark { background:#121212; color:#f1f1f1; }
+
+    header {
+      text-align:center; padding:30px 20px;
     }
-    .btn {
-      display: inline-block;
-      margin: 15px;
-      padding: 14px 28px;
-      font-size: 18px;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: transform 0.15s ease, background 0.2s ease;
-      color: white;
+    h1 { margin:0; font-size:2.2em; }
+    p { max-width:800px; margin:10px auto; }
+
+    .switches {
+      display:flex; justify-content:center; gap:30px; margin-top:20px;
     }
-    .btn:hover {
-      transform: translateY(-3px);
+    .switch {
+      display:flex; align-items:center; gap:8px; cursor:pointer;
     }
-    .spurious {
-      background: #457b9d;
+    .switch input { display:none; }
+    .slider {
+      width:50px; height:26px; border-radius:15px; background:#ccc; position:relative; transition:.3s;
     }
-    .spurious:hover {
-      background: #356a9b;
+    .slider::after {
+      content:''; position:absolute; top:3px; left:3px;
+      width:20px; height:20px; border-radius:50%; background:white; transition:.3s;
     }
-    .archi {
-      background: #e63946;
+    input:checked + .slider { background:#4cafef; }
+    input:checked + .slider::after { transform:translateX(24px); }
+
+    .icon-label { font-weight:bold; min-width:30px; text-align:center; }
+
+    .grid {
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:20px; max-width:1000px; margin:40px auto; padding:0 20px;
     }
-    .archi:hover {
-      background: #b32431;
+    .card {
+      background:white; padding:20px; border-radius:12px;
+      box-shadow:0 4px 10px rgba(0,0,0,.08);
+      text-decoration:none; color:inherit; transition:transform .2s, background .3s;
     }
+    body.dark .card { background:#1e1e1e; }
+    .card:hover { transform:translateY(-4px); }
+    .icon-wrap { font-size:40px; margin-bottom:10px; }
+
+    footer {
+      margin-top:50px; padding:20px; text-align:center;
+      font-size:14px; background:#eee; color:#333;
+    }
+    body.dark footer { background:#1a1a1a; color:#ddd; }
+
+    .contacts {
+      display:flex; justify-content:center; gap:20px; flex-wrap:wrap; margin-top:15px;
+    }
+    .contacts a {
+      color:inherit; text-decoration:none; display:flex; align-items:center; gap:6px;
+    }
+    .contacts svg { width:18px; height:18px; }
   </style>
 </head>
 <body>
-  <h1>🚀 Bienvenue sur mon site interactif</h1>
-  <p>Choisis une application :</p>
-  
-  <button class="btn spurious" onclick="location.href='https://bymox.github.io/rapport_stage_mt4a/spurious_finder.html'">
-    🔎 Spurious Finder
-  </button>
+  <header>
+    <h1 id="siteTitle">Outils RF — accès rapide</h1>
+    <p id="siteDesc">Regroupe des outils pour l’analyse RF : spurious, vérification d’architecture, calculs de chaîne, etc.</p>
+    
+    <div class="switches">
+      <!-- Dark/Light mode -->
+      <label class="switch">
+        <span class="icon-label" id="iconMode">☀️</span>
+        <input type="checkbox" id="darkToggle">
+        <span class="slider"></span>
+        <span class="icon-label">🌙</span>
+      </label>
+      <!-- Langue -->
+      <label class="switch">
+        <span class="icon-label">FR</span>
+        <input type="checkbox" id="langToggle">
+        <span class="slider"></span>
+        <span class="icon-label">EN</span>
+      </label>
+    </div>
+  </header>
 
-  <button class="btn archi" onclick="location.href='https://bymox.github.io/rapport_stage_mt4a/architecture_verif.html'">
-    🛠 Vérification d'Architecture
-  </button>
+  <main>
+    <p id="introText"><strong>But :</strong> cette page centralise plusieurs outils RF accessibles en un clic. Chaque bloc ouvre l’outil dans un nouvel onglet pour que tu puisses comparer et travailler en parallèle.</p>
+
+    <div class="grid" id="toolsGrid"></div>
+  </main>
+
+  <footer>
+    <div><strong>François Bordas</strong> — École d’ingénieur Polytech Marseille<br>
+      Spécialité Microélectronique & Télécommunications</div>
+    <div class="contacts">
+      <a href="mailto:francois.bordas@etu.univ-amu.fr">
+        📧 <span>francois.bordas@etu.univ-amu.fr</span>
+      </a>
+      <a href="mailto:francois.bordas04@gmail.com">
+        📧 <span>francois.bordas04@gmail.com</span>
+      </a>
+      <a href="tel:+33645549949">
+        📱 <span>06 45 54 99 49</span>
+      </a>
+      <a href="https://www.linkedin.com/in/françois-bordas13" target="_blank">
+        🔗 <span>LinkedIn</span>
+      </a>
+    </div>
+  </footer>
+
+<script>
+const TOOLS=[
+  {
+    title_fr:'Spurious Finder',
+    title_en:'Spurious Finder',
+    url:'https://bymox.github.io/rapport_stage_mt4a/spurious_finder.html',
+    desc_fr:'Analyse des produits de mélange et fréquences images pour convertisseurs RF.',
+    desc_en:'Analysis of mixing products and image frequencies for RF converters.',
+    icon:'<div class="icon-wrap">📡</div>'
+  },
+  {
+    title_fr:'Architecture Verif',
+    title_en:'Architecture Verif',
+    url:'https://bymox.github.io/rapport_stage_mt4a/architecture_verif.html',
+    desc_fr:'Vérification d’architecture RF : configurations, plages et tableaux de puissance.',
+    desc_en:'RF architecture verification: configurations, ranges, power tables.',
+    icon:'<div class="icon-wrap">⚙️</div>'
+  }
+];
+
+let currentLang='fr';
+const grid=document.getElementById('toolsGrid');
+
+function renderTools(){
+  grid.innerHTML='';
+  TOOLS.forEach(t=>{
+    const a=document.createElement('a');
+    a.href=t.url; a.target='_blank'; a.className='card';
+    a.innerHTML=`
+      ${t.icon}
+      <h3>${currentLang==='fr'?t.title_fr:t.title_en}</h3>
+      <p>${currentLang==='fr'?t.desc_fr:t.desc_en}</p>
+    `;
+    grid.appendChild(a);
+  });
+}
+renderTools();
+
+// Dark mode toggle
+const darkToggle=document.getElementById('darkToggle');
+darkToggle.addEventListener('change',()=>{
+  document.body.classList.toggle('dark',darkToggle.checked);
+  document.getElementById('iconMode').textContent=darkToggle.checked?'🌙':'☀️';
+});
+
+// Lang toggle
+document.getElementById('langToggle').addEventListener('change',e=>{
+  currentLang=e.target.checked?'en':'fr';
+  document.getElementById('siteTitle').textContent=currentLang==='fr'?'Outils RF — accès rapide':'RF Tools — Quick Access';
+  document.getElementById('siteDesc').textContent=currentLang==='fr'?'Regroupe des outils pour l’analyse RF : spurious, vérification d’architecture, calculs de chaîne, etc.':'Collection of RF tools: spurious finder, architecture verification, chain calculations, etc.';
+  document.getElementById('introText').innerHTML=currentLang==='fr'?`<strong>But :</strong> cette page centralise plusieurs outils RF accessibles en un clic. Chaque bloc ouvre l’outil dans un nouvel onglet pour que tu puisses comparer et travailler en parallèle.`:`<strong>Purpose:</strong> this page centralizes multiple RF tools accessible with one click. Each block opens the tool in a new tab for parallel work and comparison.`;
+  renderTools();
+});
+</script>
 </body>
 </html>
