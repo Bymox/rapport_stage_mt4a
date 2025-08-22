@@ -4,22 +4,54 @@
   <meta charset="UTF-8">
   <title>Mon test interactif</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-    button { padding: 10px 20px; font-size: 16px; }
-    #message { margin-top: 20px; font-size: 20px; color: darkblue; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 60px;
+      background: #f5f7fa;
+    }
+    h1 {
+      color: #1d3557;
+    }
+    .btn {
+      display: inline-block;
+      margin: 15px;
+      padding: 14px 28px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.2s ease;
+      color: white;
+    }
+    .btn:hover {
+      transform: translateY(-3px);
+    }
+    .spurious {
+      background: #457b9d;
+    }
+    .spurious:hover {
+      background: #356a9b;
+    }
+    .archi {
+      background: #e63946;
+    }
+    .archi:hover {
+      background: #b32431;
+    }
   </style>
 </head>
 <body>
-  <h1>Bienvenue sur mon site interactif 🚀</h1>
-  <p>Clique sur le bouton ci-dessous pour voir l'interaction :</p>
+  <h1>🚀 Bienvenue sur mon site interactif</h1>
+  <p>Choisis une application :</p>
   
-  <button onclick="changerTexte()">Clique-moi !</button>
-  <div id="message"></div>
+  <button class="btn spurious" onclick="location.href='https://bymox.github.io/rapport_stage_mt4a/spurious_finder.html'">
+    🔎 Spurious Finder
+  </button>
 
-  <script>
-    function changerTexte() {
-      document.getElementById("message").innerText = "Bravo 🎉 tu as déclenché une interaction !";
-    }
-  </script>
+  <button class="btn archi" onclick="location.href='https://bymox.github.io/rapport_stage_mt4a/architecture_verif.html'">
+    🛠 Vérification d'Architecture
+  </button>
 </body>
 </html>
