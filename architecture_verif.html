@@ -138,13 +138,16 @@
         <div class="eq-line">IP1dB<sub>in</sub> = OP1dB<sub>out</sub> − G<sub>tot</sub>(dB)</div>
       </div>
 
-      <div class="sectionTitle" id="help_title" style="margin-top:12px">Rappels par type</div>
+      <div class="sectionTitle" id="help_title" style="margin-top:12px"></div>
       <ul style="padding-left:16px">
-        <li><b id="help_filter">Filter</b> : renseigner <i>Insertion loss (dB)</i> et <i>OP1dB</i>. (NF = Insertion loss)</li>
-        <li><b id="help_lna">LNA</b> : renseigner <i>Gain (dB)</i>, <i>NF (dB)</i>, <i>OP1dB</i>.</li>
-        <li><b id="help_att">Atténuateur / Switch</b> : renseigner <i>Atténuation (dB)</i> et <i>OP1dB</i>; NF = Atténuation.</li>
-        <li><b id="help_mixer">Mixer</b> : renseigner <i>Conversion loss (dB)</i>, <i>NF (dB)</i>, <i>OP1dB</i>.</li>
+        <li><b id="help_filter"></b> : <span id="help_filter_desc"></span></li>
+        <li><b id="help_lna"></b> : <span id="help_lna_desc"></span></li>
+        <li><b id="help_att"></b> : <span id="help_att_desc"></span></li>
+        <li><b id="help_mixer"></b> : <span id="help_mixer_desc"></span></li>
       </ul>
+
+
+
 
       <div class="author" id="footer_author">Auteur : François Bordas — <a href="mailto:francois.bordas@etu.univ-amu.fr">francois.bordas@etu.univ-amu.fr</a></div>
     </div>
@@ -155,39 +158,252 @@
 /* ---------- full i18n */
 const I18N = {
   fr: {
-    title: 'RF Chain Calculator — calcul instantané', subtitle:'Gain / NF (Friis) / OP1dB & IP1dB — interface interactive',
-    n_label:'Nombre d\'étages :', add_btn:'Ajouter un étage', reset_btn:'Réinitialiser', instant_note:'Les calculs sont faits instantanément.',
-    table_title:'Tableau récapitulatif', col_type:'Type', col_gain:'Gain (dB)', col_nf:'NF / Insertion (dB)', col_op:'OP1dB (dBm)',
-    details:'Détails & trace', eq_title:'Équations (simplifiées)', help_title:'Rappels par type',
-    help_filter:'Filtre', help_lna:'LNA', help_att:'Atténuateur / Switch', help_mixer:'Mixer',
+    /* En-tête / commandes */
+    title: 'RF Chain Calculator — calcul instantané',
+    subtitle: 'Gain / NF (Friis) / OP1dB & IP1dB — interface interactive',
+    n_label: 'Nombre d\'étages :',
+    add_btn: 'Ajouter un étage',
+    reset_btn: 'Réinitialiser',
+    instant_note: 'Les calculs sont faits instantanément.',
+
+    /* Résumé / tableau */
+    table_title: 'Tableau récapitulatif',
+    col_type: 'Type',
+    col_gain: 'Gain (dB)',
+    col_nf: 'NF / Insertion (dB)',
+    col_op: 'OP1dB (dBm)',
+    details: 'Détails & trace',
+
+    // ---- ajouter DANS I18N.fr ----
+    eq_gain_title: 'Gain total (dB)',
+    eq_gain_line: 'G<sub>tot</sub>(dB) = Σ G<sub>i</sub>(dB)',
+    eq_gain_note: '(pour un filtre, utiliser G = −Perte d’insertion)',
+    eq_nf_title: 'NF totale (Friis)',
+    eq_nf_line: 'NF<sub>tot</sub> = 10·log<sub>10</sub>( NF<sub>1</sub><sup>lin</sup> + (NF<sub>2</sub><sup>lin</sup> − 1)/G<sub>1</sub><sup>lin</sup> + (NF<sub>3</sub><sup>lin</sup> − 1)/(G<sub>1</sub><sup>lin</sup>·G<sub>2</sub><sup>lin</sup>) + … )',
+    eq_nf_note: 'avec NF<sup>lin</sup> = 10<sup>NF(dB)/10</sup> et G<sup>lin</sup> = 10<sup>G(dB)/10</sup>.',
+    eq_p1_title: 'OP1dB combiné (approx.)',
+    eq_p1_line1: '1 / P<sub>tot</sub> = Σ<sub>i</sub> 1 / (P<sub>1,i</sub> · G<sub>après,i</sub>)',
+    eq_p1_line2: 'OP1dB<sub>sortie</sub> (dBm) = 10·log<sub>10</sub>(P<sub>tot</sub>)',
+    eq_p1_note: 'P en mW (conversion dBm→mW).',
+    eq_ip_title: 'IP1dB d’entrée',
+    eq_ip_line: 'IP1dB<sub>entrée</sub> = OP1dB<sub>sortie</sub> − G<sub>tot</sub>(dB)',
+
+    // help descriptions (les noms en _desc sont utilisés par applyLang)
+    help_filter_desc: 'renseigner Perte d’insertion (dB) et OP1dB. (NF = Perte d’insertion)',
+    help_lna_desc: 'renseigner Gain (dB), NF (dB), OP1dB.',
+    help_att_desc: 'renseigner Atténuation (dB) et OP1dB ; NF = Atténuation.',
+    help_mixer_desc: 'renseigner Perte de conversion (dB), NF (dB), OP1dB.',
+
+    /* Équations */
+    eq_title: 'Équations (simplifiées)',
+    eq_gain_title: 'Gain total (dB)',
+    eq_gain_line: 'G<sub>tot</sub>(dB) = Σ G<sub>i</sub>(dB)',
+    eq_gain_note: '(pour un filtre, utiliser G = −Perte d’insertion)',
+    eq_nf_title: 'NF totale (Friis)',
+    eq_nf_line: 'NF<sub>tot</sub> = 10·log<sub>10</sub>( NF<sub>1</sub><sup>lin</sup> + (NF<sub>2</sub><sup>lin</sup> − 1)/G<sub>1</sub><sup>lin</sup> + (NF<sub>3</sub><sup>lin</sup> − 1)/(G<sub>1</sub><sup>lin</sup>·G<sub>2</sub><sup>lin</sup>) + … )',
+    eq_nf_note: 'avec NF<sup>lin</sup> = 10<sup>NF(dB)/10</sup> et G<sup>lin</sup> = 10<sup>G(dB)/10</sup>.',
+    eq_p1_title: 'OP1dB combiné (approx.)',
+    eq_p1_line1: '1 / P<sub>tot</sub> = Σ<sub>i</sub> 1 / (P<sub>1,i</sub> · G<sub>après,i</sub>)',
+    eq_p1_line2: 'OP1dB<sub>sortie</sub> (dBm) = 10·log<sub>10</sub>(P<sub>tot</sub>)',
+    eq_p1_note: 'P en mW (conversion dBm→mW).',
+    eq_ip_title: 'IP1dB d’entrée',
+    eq_ip_line: 'IP1dB<sub>entrée</sub> = OP1dB<sub>sortie</sub> − G<sub>tot</sub>(dB)',
+
+    /* Aide par type */
+    help_title: 'Rappels par type',
+    help_filter: 'Filtre',
+    help_filter_desc: 'renseigner Perte d’insertion (dB) et OP1dB. (NF = Perte d’insertion)',
+    help_lna: 'LNA',
+    help_lna_desc: 'renseigner Gain (dB), NF (dB), OP1dB.',
+    help_att: 'Atténuateur / Switch',
+    help_att_desc: 'renseigner Atténuation (dB) et OP1dB ; NF = Atténuation.',
+    help_mixer: 'Mixer',
+    help_mixer_desc: 'renseigner Perte de conversion (dB), NF (dB), OP1dB.',
+
+    /* Types / labels / divers */
     types: {ampli:'LNA', filter:'Filtre', atten:'Atténuateur', switch:'Switch', mixer:'Mixer'},
-    label_gain:'Gain total', label_nf:'NF total', label_op:'OP1dB sortie', label_ip:'IP1dB entrée',
-    label_gain_field:'Gain (dB) :', label_nf_field:'NF (dB) :', label_insertion_field:'Insertion/Attén (dB) :', label_p1:'OP1dB (dBm) :',
-    confirm_reset: 'Réinitialiser tout ?', log_line: '#{i} {name}({type}) — gain {g} dB, NF {nf} dB, OP1dB {p} dBm',
-    default_chain_prefix: {filter:'Filtre', lna:'LNA', mixer:'Mixer'} ,
-    footer:'Document interactif — calculs instantanés pour conception de chaîne RF.'
+    label_gain: 'Gain total',
+    label_nf: 'NF total',
+    label_op: 'OP1dB sortie',
+    label_ip: 'IP1dB entrée',
+    label_gain_field: 'Gain (dB) :',
+    label_nf_field: 'NF (dB) :',
+    label_insertion_field: 'Insertion/Attén (dB) :',
+    label_p1: 'OP1dB (dBm) :',
+    confirm_reset: 'Réinitialiser tout ?',
+    log_line: '#{i} {name}({type}) — gain {g} dB, NF {nf} dB, OP1dB {p} dBm',
+    default_chain_prefix: {filter:'Filtre', lna:'LNA', mixer:'Mixer'},
+    footer: 'Document interactif — calculs instantanés pour conception de chaîne RF.'
   },
+
   en: {
-    title: 'RF Chain Calculator — live compute', subtitle:'Gain / NF (Friis) / OP1dB & IP1dB — interactive UI',
-    n_label:'Number of stages:', add_btn:'Add stage', reset_btn:'Reset', instant_note:'Calculations are done instantly.',
-    table_title:'Summary table', col_type:'Type', col_gain:'Gain (dB)', col_nf:'NF / Insertion (dB)', col_op:'OP1dB (dBm)',
-    details:'Details & trace', eq_title:'Equations (simplified)', help_title:'Notes by type',
-    help_filter:'Filter', help_lna:'LNA', help_att:'Attenuator / Switch', help_mixer:'Mixer',
+    /* Header / controls */
+    title: 'RF Chain Calculator — live compute',
+    subtitle: 'Gain / NF (Friis) / OP1dB & IP1dB — interactive UI',
+    n_label: 'Number of stages:',
+    add_btn: 'Add stage',
+    reset_btn: 'Reset',
+    instant_note: 'Calculations are done instantly.',
+
+    /* Summary / table */
+    table_title: 'Summary table',
+    col_type: 'Type',
+    col_gain: 'Gain (dB)',
+    col_nf: 'NF / Insertion (dB)',
+    col_op: 'OP1dB (dBm)',
+    details: 'Details & trace',
+
+    // ---- ajouter DANS I18N.en ----
+    eq_gain_title: 'Total gain (dB)',
+    eq_gain_line: 'G<sub>tot</sub>(dB) = Σ G<sub>i</sub>(dB)',
+    eq_gain_note: '(for a filter, use G = −Insertion loss)',
+    eq_nf_title: 'Total NF (Friis)',
+    eq_nf_line: 'NF<sub>tot</sub> = 10·log<sub>10</sub>( NF<sub>1</sub><sup>lin</sup> + (NF<sub>2</sub><sup>lin</sup> − 1)/G<sub>1</sub><sup>lin</sup> + (NF<sub>3</sub><sup>lin</sup> − 1)/(G<sub>1</sub><sup>lin</sup>·G<sub>2</sub><sup>lin</sup>) + … )',
+    eq_nf_note: 'with NF<sup>lin</sup> = 10<sup>NF(dB)/10</sup> and G<sup>lin</sup> = 10<sup>G(dB)/10</sup>.',
+    eq_p1_title: 'Combined OP1dB (approx.)',
+    eq_p1_line1: '1 / P<sub>tot</sub> = Σ<sub>i</sub> 1 / (P<sub>1,i</sub> · G<sub>after,i</sub>)',
+    eq_p1_line2: 'OP1dB<sub>out</sub> (dBm) = 10·log<sub>10</sub>(P<sub>tot</sub>)',
+    eq_p1_note: 'P in mW (dBm→mW conversion).',
+    eq_ip_title: 'Input IP1dB',
+    eq_ip_line: 'IP1dB<sub>in</sub> = OP1dB<sub>out</sub> − G<sub>tot</sub>(dB)',
+
+    // help descriptions
+    help_filter_desc: 'fill in Insertion loss (dB) and OP1dB. (NF = Insertion loss)',
+    help_lna_desc: 'fill in Gain (dB), NF (dB), OP1dB.',
+    help_att_desc: 'fill in Attenuation (dB) and OP1dB; NF = Attenuation.',
+    help_mixer_desc: 'fill in Conversion loss (dB), NF (dB), OP1dB.',
+
+    /* Equations */
+    eq_title: 'Equations (simplified)',
+    eq_gain_title: 'Total gain (dB)',
+    eq_gain_line: 'G<sub>tot</sub>(dB) = Σ G<sub>i</sub>(dB)',
+    eq_gain_note: '(for a filter, use G = −Insertion loss)',
+    eq_nf_title: 'Total NF (Friis)',
+    eq_nf_line: 'NF<sub>tot</sub> = 10·log<sub>10</sub>( NF<sub>1</sub><sup>lin</sup> + (NF<sub>2</sub><sup>lin</sup> − 1)/G<sub>1</sub><sup>lin</sup> + (NF<sub>3</sub><sup>lin</sup> − 1)/(G<sub>1</sub><sup>lin</sup>·G<sub>2</sub><sup>lin</sup>) + … )',
+    eq_nf_note: 'with NF<sup>lin</sup> = 10<sup>NF(dB)/10</sup> and G<sup>lin</sup> = 10<sup>G(dB)/10</sup>.',
+    eq_p1_title: 'Combined OP1dB (approx.)',
+    eq_p1_line1: '1 / P<sub>tot</sub> = Σ<sub>i</sub> 1 / (P<sub>1,i</sub> · G<sub>after,i</sub>)',
+    eq_p1_line2: 'OP1dB<sub>out</sub> (dBm) = 10·log<sub>10</sub>(P<sub>tot</sub>)',
+    eq_p1_note: 'P in mW (dBm→mW conversion).',
+    eq_ip_title: 'Input IP1dB',
+    eq_ip_line: 'IP1dB<sub>in</sub> = OP1dB<sub>out</sub> − G<sub>tot</sub>(dB)',
+
+    /* Help by type */
+    help_title: 'Notes by type',
+    help_filter: 'Filter',
+    help_filter_desc: 'fill in Insertion loss (dB) and OP1dB. (NF = Insertion loss)',
+    help_lna: 'LNA',
+    help_lna_desc: 'fill in Gain (dB), NF (dB), OP1dB.',
+    help_att: 'Attenuator / Switch',
+    help_att_desc: 'fill in Attenuation (dB) and OP1dB; NF = Attenuation.',
+    help_mixer: 'Mixer',
+    help_mixer_desc: 'fill in Conversion loss (dB), NF (dB), OP1dB.',
+
+    /* Types / labels / misc */
     types: {ampli:'LNA', filter:'Filter', atten:'Attenuator', switch:'Switch', mixer:'Mixer'},
-    label_gain:'Total gain', label_nf:'Total NF', label_op:'OP1dB out', label_ip:'IP1dB in',
-    label_gain_field:'Gain (dB) :', label_nf_field:'NF (dB) :', label_insertion_field:'Insertion/Attn (dB) :', label_p1:'OP1dB (dBm) :',
-    confirm_reset: 'Reset everything?', log_line: '#{i} {name}({type}) — gain {g} dB, NF {nf} dB, OP1dB {p} dBm',
+    label_gain: 'Total gain',
+    label_nf: 'Total NF',
+    label_op: 'OP1dB out',
+    label_ip: 'IP1dB in',
+    label_gain_field: 'Gain (dB) :',
+    label_nf_field: 'NF (dB) :',
+    label_insertion_field: 'Insertion/Attn (dB) :',
+    label_p1: 'OP1dB (dBm) :',
+    confirm_reset: 'Reset everything?',
+    log_line: '#{i} {name}({type}) — gain {g} dB, NF {nf} dB, OP1dB {p} dBm',
     default_chain_prefix: {filter:'Filter', lna:'LNA', mixer:'Mixer'},
-    footer:'Interactive document — live computations for RF chain design.'
+    footer: 'Interactive document — live computations for RF chain design.'
   }
 };
+
 let currentLang = 'fr';
 function t(key){ const parts = key.split('.'); let v = I18N[currentLang]; for (const p of parts){ if (v && v[p] !== undefined) v = v[p]; else return key; } return v; }
+function applyLang(lang) {
+  currentLang = lang;
+  const dict = I18N[lang] || I18N.fr;
 
-function applyLang(lang){ currentLang = lang; const dict = I18N[lang]||I18N.fr; document.getElementById('title').textContent = dict.title; document.getElementById('subtitle').textContent = dict.subtitle; document.getElementById('label_n').textContent = dict.n_label; document.getElementById('btnAdd')?.setAttribute('data-i18n',''); document.getElementById('btnAdd').textContent = dict.add_btn; document.getElementById('btnReset').textContent = dict.reset_btn; document.getElementById('note_instant').textContent = dict.instant_note; document.getElementById('table_title').textContent = dict.table_title; document.getElementById('col_type').textContent = dict.col_type; document.getElementById('col_gain').textContent = dict.col_gain; document.getElementById('col_nf').textContent = dict.col_nf; document.getElementById('col_op').textContent = dict.col_op; document.getElementById('details_title').textContent = dict.details; document.getElementById('eq_title').textContent = dict.eq_title; document.getElementById('help_title').textContent = dict.help_title; document.getElementById('help_filter').textContent = dict.help_filter; document.getElementById('help_lna').textContent = dict.help_lna; document.getElementById('help_att').textContent = dict.help_att; document.getElementById('help_mixer').textContent = dict.help_mixer; document.getElementById('label_gain').textContent = dict.label_gain; document.getElementById('label_nf').textContent = dict.label_nf; document.getElementById('label_op').textContent = dict.label_op; document.getElementById('label_ip').textContent = dict.label_ip; document.getElementById('footer_author').innerHTML = (lang==='fr')? 'Auteur : François Bordas — <a href="mailto:francois.bordas@etu.univ-amu.fr">francois.bordas@etu.univ-amu.fr</a>' : 'Author: François Bordas — <a href="mailto:francois.bordas@etu.univ-amu.fr">francois.bordas@etu.univ-amu.fr</a>';
-  // re-render stages so field labels & type names update
-  renderStages(); computeAll(); document.querySelector('footer div') && (document.querySelector('footer div').textContent = dict.footer);
+  // Titres / textes principaux
+  document.getElementById('title').textContent = dict.title;
+  document.getElementById('subtitle').textContent = dict.subtitle;
+  document.getElementById('label_n').textContent = dict.n_label;
+  document.getElementById('btnAdd').textContent = dict.add_btn;
+  document.getElementById('btnReset').textContent = dict.reset_btn;
+  document.getElementById('note_instant').textContent = dict.instant_note;
+  document.getElementById('table_title').textContent = dict.table_title;
+  document.getElementById('col_type').textContent = dict.col_type;
+  document.getElementById('col_gain').textContent = dict.col_gain;
+  document.getElementById('col_nf').textContent = dict.col_nf;
+  document.getElementById('col_op').textContent = dict.col_op;
+  document.getElementById('details_title').textContent = dict.details;
+  document.getElementById('eq_title').textContent = dict.eq_title;
+
+  // --- Equations : mettre à jour titres / lignes / notes ----
+  // eq_gain
+  const eg = document.getElementById('eq_gain');
+  if (eg) {
+    const t = eg.querySelector('.eq-title'); if (t) t.innerHTML = dict.eq_gain_title || '';
+    const l = eg.querySelector('.eq-line'); if (l) l.innerHTML = dict.eq_gain_line || '';
+    const n = document.getElementById('eq_gain_note'); if (n) n.innerHTML = dict.eq_gain_note || '';
+  }
+
+  // eq_nf
+  const enf = document.getElementById('eq_nf');
+  if (enf) {
+    const t = enf.querySelector('.eq-title'); if (t) t.innerHTML = dict.eq_nf_title || '';
+    const l = enf.querySelector('.eq-line'); if (l) l.innerHTML = dict.eq_nf_line || '';
+    const n = document.getElementById('eq_nf_note'); if (n) n.innerHTML = dict.eq_nf_note || '';
+  }
+
+  // eq_p1 (2 lignes)
+  const ep1 = document.getElementById('eq_p1');
+  if (ep1) {
+    const t = ep1.querySelector('.eq-title'); if (t) t.innerHTML = dict.eq_p1_title || '';
+    const lines = ep1.querySelectorAll('.eq-line');
+    if (lines && lines.length > 0) {
+      lines[0].innerHTML = dict.eq_p1_line1 || '';
+      if (lines.length > 1) lines[1].innerHTML = dict.eq_p1_line2 || '';
+    }
+    const n = document.getElementById('eq_p1_note'); if (n) n.innerHTML = dict.eq_p1_note || '';
+  }
+
+  // eq_ip
+  const eip = document.getElementById('eq_ip');
+  if (eip) {
+    const t = eip.querySelector('.eq-title'); if (t) t.innerHTML = dict.eq_ip_title || '';
+    const l = eip.querySelector('.eq-line'); if (l) l.innerHTML = dict.eq_ip_line || '';
+  }
+
+  // Help section (titres et descriptions complètes) — utilise les clés *_desc
+  document.getElementById('help_title').textContent = dict.help_title;
+  document.getElementById('help_filter').textContent = dict.help_filter;
+  const hf = document.getElementById('help_filter_desc'); if (hf) hf.innerHTML = dict.help_filter_desc || dict.help_filter_txt || '';
+  document.getElementById('help_lna').textContent = dict.help_lna;
+  const hl = document.getElementById('help_lna_desc'); if (hl) hl.innerHTML = dict.help_lna_desc || dict.help_lna_txt || '';
+  document.getElementById('help_att').textContent = dict.help_att;
+  const ha = document.getElementById('help_att_desc'); if (ha) ha.innerHTML = dict.help_att_desc || dict.help_att_txt || '';
+  document.getElementById('help_mixer').textContent = dict.help_mixer;
+  const hm = document.getElementById('help_mixer_desc'); if (hm) hm.innerHTML = dict.help_mixer_desc || dict.help_mixer_txt || '';
+
+  // Résultats
+  document.getElementById('label_gain').textContent = dict.label_gain;
+  document.getElementById('label_nf').textContent = dict.label_nf;
+  document.getElementById('label_op').textContent = dict.label_op;
+  document.getElementById('label_ip').textContent = dict.label_ip;
+
+  // Footer auteur
+  document.getElementById('footer_author').innerHTML =
+    (lang === 'fr')
+      ? 'Auteur : François Bordas — <a href="mailto:francois.bordas@etu.univ-amu.fr">francois.bordas@etu.univ-amu.fr</a>'
+      : 'Author: François Bordas — <a href="mailto:francois.bordas@etu.univ-amu.fr">francois.bordas@etu.univ-amu.fr</a>';
+
+  // Re-render
+  renderStages();
+  computeAll();
+  if (document.querySelector('footer div')) {
+    document.querySelector('footer div').textContent = dict.footer;
+  }
 }
+
 
 function applyTheme(tname){ document.body.setAttribute('data-theme', tname); }
 
