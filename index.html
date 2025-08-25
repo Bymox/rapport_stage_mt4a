@@ -2,160 +2,104 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Outils RF</title>
+  <title>Hub Rapport MT4A — Accès aux outils et fichiers</title>
   <style>
     body {
       margin:0; font-family: 'Segoe UI', sans-serif;
-      background:#f9fafb; color:#222; line-height:1.6;
-      transition: background .3s, color .3s;
+      background:#121212; color:#f1f1f1; line-height:1.6;
     }
-    body.dark { background:#121212; color:#f1f1f1; }
-
     header {
-      text-align:center; padding:30px 20px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      padding:30px 40px;
+      text-align:center;
     }
+
     h1 { margin:0; font-size:2.2em; }
-    p { max-width:800px; margin:10px auto; }
-
-    .switches {
-      display:flex; justify-content:center; gap:30px; margin-top:20px;
+    p { max-width:800px; margin:10px 0; text-align:center;}
+    .section-title {
+      font-weight:bold;
+      font-size:1.5em; 
+      margin:40px 0 10px 40px;
+      color:#4cafef;
     }
-    .switch {
-      display:flex; align-items:center; gap:8px; cursor:pointer;
+    hr {
+      border:none; 
+      height:2px; 
+      background:#4cafef; 
+      margin:10px 40px 30px 40px;
     }
-    .switch input { display:none; }
-    .slider {
-      width:50px; height:26px; border-radius:15px; background:#ccc; position:relative; transition:.3s;
-    }
-    .slider::after {
-      content:''; position:absolute; top:3px; left:3px;
-      width:20px; height:20px; border-radius:50%; background:white; transition:.3s;
-    }
-    input:checked + .slider { background:#4cafef; }
-    input:checked + .slider::after { transform:translateX(24px); }
-
-    .icon-label { font-weight:bold; min-width:30px; text-align:center; }
-
     .grid {
-      display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-      gap:20px; max-width:1000px; margin:40px auto; padding:0 20px;
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:20px; 
+      max-width:500px; 
+      margin:0 40px 40px;
     }
     .card {
-      background:white; padding:20px; border-radius:12px;
-      box-shadow:0 4px 10px rgba(0,0,0,.08);
-      text-decoration:none; color:inherit; transition:transform .2s, background .3s;
+      background:#1e1e1e; 
+      padding:20px; 
+      border-radius:12px;
+      box-shadow:0 4px 10px rgba(0,0,0,.3);
+      text-decoration:none; 
+      color:inherit; 
+      transition:transform .2s;
+      display:flex; flex-direction:column; align-items:center;
     }
-    body.dark .card { background:#1e1e1e; }
-    .card:hover { transform:translateY(-4px); }
-    .icon-wrap { font-size:40px; margin-bottom:10px; }
-
+    .card:hover { transform:translateY(-4px);text-align:center; }
+    .card-small { padding:10px; font-size:0.9em; text-align:center;}
+    .icon-wrap { font-size:40px; margin-bottom:10px; text-align:center; }
     footer {
-      margin-top:50px; padding:20px; text-align:center;
-      font-size:14px; background:#eee; color:#333;
+      margin-top:50px; padding:20px 40px; text-align:center;
+      font-size:14px; background:#1a1a1a; color:#ddd;
     }
-    body.dark footer { background:#1a1a1a; color:#ddd; }
-
     .contacts {
-      display:flex; justify-content:center; gap:20px; flex-wrap:wrap; margin-top:15px;
+      display:flex; gap:20px; flex-wrap:wrap; margin-top:15px;
     }
     .contacts a {
-      color:inherit; text-decoration:none; display:flex; align-items:center; gap:6px;
+      color:inherit; text-align:center; text-decoration:none; display:flex; align-items:center; gap:6px;
     }
-    .contacts svg { width:18px; height:18px; }
+    .contacts svg { width:18px; height:18px;text-align:center; }
   </style>
 </head>
 <body>
   <header>
-    <h1 id="siteTitle">Outils RF — accès rapide</h1>
-    <p id="siteDesc">Regroupe des outils pour l’analyse RF : spurious, vérification d’architecture, calculs de chaîne, etc.</p>
-    
-    <div class="switches">
-      <!-- Dark/Light mode -->
-      <label class="switch">
-        <span class="icon-label" id="iconMode">☀️</span>
-        <input type="checkbox" id="darkToggle">
-        <span class="slider"></span>
-        <span class="icon-label">🌙</span>
-      </label>
-      <!-- Langue -->
-      <label class="switch">
-        <span class="icon-label">FR</span>
-        <input type="checkbox" id="langToggle">
-        <span class="slider"></span>
-        <span class="icon-label">EN</span>
-      </label>
-    </div>
+    <h1>Hub Rapport MT4A</h1>
+    <p>Cette page sert de hub pour accéder aux versions web des scripts et au centre de téléchargement des fichiers du rapport de stage.</p>
   </header>
 
-  <main>
-    <p id="introText"><strong>But :</strong> cette page centralise plusieurs outils RF accessibles en un clic. Chaque bloc ouvre l’outil dans un nouvel onglet pour que tu puisses comparer et travailler en parallèle.</p>
+  <!-- Section Centre de téléchargement / liens principaux -->
+  <div class="section-title">Centre de téléchargement & fichiers principaux</div>
+  <hr>
+  <div class="grid">
+    <a href="https://bymox.github.io/centre_de_telechargement_rapport_MT4A/" target="_blank" class="card">
+      <div class="icon-wrap">📥</div>
+      <h3>Centre de téléchargement</h3>
+      <p>Tous les fichiers, codes et documents du rapport MT4A.</p>
+    </a>
+  </div>
 
-    <div class="grid" id="toolsGrid"></div>
-  </main>
+  <!-- Section versions web des outils -->
+  <div class="section-title">Versions web des outils</div>
+  <hr>
+  <div class="grid">
+    <a href="https://bymox.github.io/rapport_stage_mt4a/spurious_finder.html" target="_blank" class="card card-small">
+      <div class="icon-wrap">📡</div>
+      <h3>Spurious Finder</h3>
+      <p>Calcul des produits de mélange (spurious) d’un mixer. Version web.</p>
+    </a>
+    <a href="https://bymox.github.io/rapport_stage_mt4a/architecture_verif.html" target="_blank" class="card card-small">
+      <div class="icon-wrap">⚙️</div>
+      <h3>Architecture Verif</h3>
+      <p>Calcul du gain, NF et OP1dB pour une chaîne RF. Version web.</p>
+    </a>
+  </div>
 
   <footer>
     <div><strong>François Bordas</strong> — École d’ingénieur Polytech Marseille<br>
       Spécialité Microélectronique & Télécommunications</div>
-    <div class="contacts">
-      <a href="https://www.linkedin.com/in/françois-bordas13" target="_blank">
-        🔗 <span>LinkedIn</span>
-      </a>
-    </div>
   </footer>
-
-<script>
-const TOOLS=[
-  {
-    title_fr:'Spurious Finder',
-    title_en:'Spurious Finder',
-    url:'https://bymox.github.io/rapport_stage_mt4a/spurious_finder.html',
-    desc_fr:"Calcule tous les produits de mélange d’un mélangeur, permettant de déterminer les fréquences des spurious générés.",
-    desc_en:"Computes all mixing products of a mixer, allowing determination of the spurious frequencies it generates.",
-    icon:'<div class="icon-wrap">📡</div>'
-  },
-  {
-    title_fr:'Architecture Verif',
-    title_en:'Architecture Verif',
-    url:'https://bymox.github.io/rapport_stage_mt4a/architecture_verif.html',
-    desc_fr:"Calcule le gain, le facteur de bruit (NF) et le P1dB en cascade pour une chaîne RF complète.",
-    desc_en:"Computes the gain, noise figure (NF), and cascaded P1dB for a complete RF chain.",
-    icon:'<div class="icon-wrap">⚙️</div>'
-  }
-];
-
-let currentLang='fr';
-const grid=document.getElementById('toolsGrid');
-
-function renderTools(){
-  grid.innerHTML='';
-  TOOLS.forEach(t=>{
-    const a=document.createElement('a');
-    a.href=t.url; a.target='_blank'; a.className='card';
-    a.innerHTML=`
-      ${t.icon}
-      <h3>${currentLang==='fr'?t.title_fr:t.title_en}</h3>
-      <p>${currentLang==='fr'?t.desc_fr:t.desc_en}</p>
-    `;
-    grid.appendChild(a);
-  });
-}
-renderTools();
-
-// Dark mode toggle
-const darkToggle=document.getElementById('darkToggle');
-darkToggle.addEventListener('change',()=>{
-  document.body.classList.toggle('dark',darkToggle.checked);
-  document.getElementById('iconMode').textContent=darkToggle.checked?'🌙':'☀️';
-});
-
-// Lang toggle
-document.getElementById('langToggle').addEventListener('change',e=>{
-  currentLang=e.target.checked?'en':'fr';
-  document.getElementById('siteTitle').textContent=currentLang==='fr'?'Outils RF — accès rapide':'RF Tools — Quick Access';
-  document.getElementById('siteDesc').textContent=currentLang==='fr'?'Regroupe des outils pour l’analyse RF : spurious, vérification d’architecture, calculs de chaîne, etc.':'Collection of RF tools: spurious finder, architecture verification, chain calculations, etc.';
-  document.getElementById('introText').innerHTML=currentLang==='fr'?`<strong>But :</strong> cette page centralise plusieurs outils RF accessibles en un clic. Chaque bloc ouvre l’outil dans un nouvel onglet pour que tu puisses comparer et travailler en parallèle.`:`<strong>Purpose:</strong> this page centralizes multiple RF tools accessible with one click. Each block opens the tool in a new tab for parallel work and comparison.`;
-  renderTools();
-});
-</script>
 </body>
 </html>
