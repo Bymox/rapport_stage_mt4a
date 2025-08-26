@@ -5,122 +5,101 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Spurious interactif — architecture_verif</title>
 <style>
-  /* pastel bright theme variables */
+  /* Refined pastel theme (dark enforced) */
   :root{
-    --accent:#8fbce6;       /* pastel blue */
-    --accent-strong:#0b74de;
-    --muted:#6b7280;
-    --card-bg:#fffefc;     /* warm white */
-    --page-bg:#f4f7fb;     /* very light blue */
-    --panel-bg:#f7fbff;
-    --panel-border:#e6eef8;
-    --mono-bg:#fcfcff;
-    --gap:12px;
-    --text:#111;
-    --muted-text:#6b7280;
-    --success:#6cc070;
-    --danger:#e06b6b;
-    --svg-rf:#fde7e7;
-    --svg-fi:#e8f8ef;
-    --svg-ol:#fff2df;
-  }
-
-  /* dark theme overrides */
-  [data-theme="dark"]{
-    --accent:#7aa7d9;
-    --accent-strong:#3ba0ff;
+    --bg:#071026;
+    --card:#081428;
     --muted:#9aa3b2;
-    --card-bg:#0f1720;
-    --page-bg:#0b0f14;
-    --panel-bg:#0b1724;
-    --panel-border:#12303f;
-    --mono-bg:#071019;
     --text:#e6eef6;
-    --muted-text:#9aa3b2;
-    --success:#4db055;
-    --danger:#d26b6b;
-    --svg-rf:#3f1f2a;
-    --svg-fi:#113226;
-    --svg-ol:#2b1a09;
+    --accent:#4aa3e0;
+    --accent-2:#7ad3b7;
+    --danger:#e06b6b;
+    --success:#46b16b;
+    --panel-border:#0f2b3a;
+    --mono-bg:#06101a;
+    --glass: rgba(74,163,224,0.06);
+    --radius:12px;
+    --gap:12px;
+    --code-font: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
   }
 
-  html,body{height:100%}
-  body{
-    font-family:system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    margin:14px;
-    background:var(--page-bg);
-    color:var(--text);
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
-  }
-  /* header layout */
-  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  html,body{height:106%;margin:0;font-family:system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+  body{padding:18px}
+
+  /* header */
+  .header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}
   .title-block{display:flex;align-items:flex-start;gap:12px}
-  h1{margin:0 0 0;font-size:1.25rem}
-  .small{font-size:0.88rem;color:var(--muted-text)}
-  .muted{color:var(--muted-text)}
-  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace}
-  .card{
-    background:var(--card-bg);
-    border:1px solid var(--panel-border);
-    border-radius:10px;
-    padding:12px;
-    box-shadow:0 4px 12px rgba(11,20,30,0.03);
-  }
+  h1{margin:0;font-size:2.0rem}
+  .small{font-size:0.88rem;color:var(--muted)}
 
-  /* Layout : left column 40% / right column 60% */
-  .layout{
+  /* subtle glass card */
+  .card{background:var(--card);border:1px solid var(--panel-border);border-radius:var(--radius);padding:14px;box-shadow:0 6px 20px rgba(2,6,23,0.6)}
+
+  /* Layout grid: LEFT 45% RIGHT 55% ; top row smaller so params not huge */
+  .layout {
     display:grid;
-    grid-template-columns: 40% 60%;
-    grid-template-rows: auto 1fr;
-    gap: var(--gap);
-    height: calc(100vh - 120px);
+    grid-template-columns:45% 55%;
+    grid-template-rows:62% 54%;   /* avant 28/72 → +4% pour params */
+    gap:var(--gap);
+    height:calc(100vh - 120px);
   }
-
-  .params { grid-column: 1 / 2; grid-row: 1 / 2; display:flex; flex-direction:column; gap:10px; }
-  .power-table { grid-column: 1 / 2; grid-row: 2 / 3; overflow:visible; }
-  .results { grid-column: 2 / 3; grid-row: 1 / 3; overflow:auto; }
+  .params{grid-column:1/2;grid-row:1/2;display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:460px;overflow:auto}
+  .power-table{grid-column:1/2;grid-row:2/3;overflow:auto}
+  .results{grid-column:2/3;grid-row:1/3;overflow:auto}
 
   .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  label{min-width:110px;color:var(--text);font-size:0.95rem}
-  input[type=number], select, input[type=text] {
-    padding:6px;border-radius:8px;border:1px solid var(--panel-border);font-size:0.95rem;
-    box-sizing:border-box;background:var(--mono-bg);color:var(--text)
-  }
+  label{min-width:120px;color:var(--text);font-size:0.95rem}
+
+  input[type=number], select, input[type=text]{padding:6px;border-radius:8px;border:1px solid var(--panel-border);font-size:0.88rem;background:var(--mono-bg);color:var(--text);min-height:20px}
+  input[type=number]::placeholder, input[type=text]::placeholder{color:var(--muted)}
   input[type=range]{width:140px}
 
+  /* table styles */
   table{border-collapse:collapse;width:100%}
-  #power_table{table-layout:fixed;border-collapse:collapse;width:100%}
-  #power_table th, #power_table td{border:1px solid var(--panel-border);padding:8px;text-align:center;font-size:0.92rem;white-space:nowrap;background:transparent}
-  #power_table thead th{background:transparent;font-weight:600;font-size:0.92rem}
-  #power_table td input{width:56px;padding:6px;border-radius:6px;border:1px solid var(--panel-border);text-align:center;font-size:0.9rem;background:var(--mono-bg);color:var(--text)}
+  #power_table{table-layout:fixed;border-collapse:collapse;width:100%;background:transparent}
+  #power_table th,#power_table td{border:1px solid var(--panel-border);padding:8px;text-align:center;font-size:0.92rem;white-space:nowrap}
+  #power_table thead th{background:transparent;font-weight:600}
+  #power_table td input{width:64px;padding:6px;border-radius:8px;border:1px solid var(--panel-border);text-align:center;font-size:0.92rem;background:transparent;color:var(--text)}
 
-  .btn{background:var(--accent);color:#fff;border:none;padding:7px 10px;border-radius:8px;cursor:pointer;font-size:0.9rem;box-shadow:0 2px 6px rgba(11,20,30,0.05)}
-  .btn-ghost{background:transparent;color:var(--accent-strong);border:1px solid var(--accent);cursor:pointer;padding:6px 9px;border-radius:8px;font-size:0.9rem}
+  /* highlight empty cells to show missing data */
+  .missing-cell{background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0));border-radius:8px}
+
+  /* buttons */
+  .btn{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#06121a;border:none;padding:8px 12px;border-radius:10px;cursor:pointer;font-size:0.92rem;box-shadow:0 6px 16px rgba(74,163,224,0.12)}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-ghost{background:transparent;color:var(--accent);border:1px solid rgba(74,163,224,0.12);cursor:pointer;padding:7px 10px;border-radius:10px;font-size:0.9rem}
+
   .actions{display:flex;gap:8px;align-items:center}
 
-  #spurious_list table{width:100%;border-collapse:collapse;font-size:0.92rem}
+  #spurious_list table{width:100%;border-collapse:collapse;font-size:0.93rem}
   #spurious_list th,#spurious_list td{border:1px solid var(--panel-border);padding:8px;text-align:center}
+  #spurious_list tr:nth-child(even){background:rgba(255,255,255,0.02)}
 
   .compact{font-size:0.92rem}
-  footer{margin-top:12px;font-size:0.9rem;color:var(--muted-text)}
+  footer{margin-top:12px;font-size:0.9rem;color:var(--muted)}
 
-  /* pastel fills for SVG boxes */
-  .svg-rf { fill: var(--svg-rf); stroke: rgba(0,0,0,0.06); }
-  .svg-fi { fill: var(--svg-fi); stroke: rgba(0,0,0,0.06); }
-  .svg-ol { fill: var(--svg-ol); stroke: rgba(0,0,0,0.06); }
+  /* mini schematic */
+  .svg-rf{fill:rgba(255,120,120,0.08);stroke:rgba(255,255,255,0.02)}
+  .svg-fi{fill:rgba(120,255,180,0.06);stroke:rgba(255,255,255,0.02)}
+  .svg-ol{fill:rgba(255,230,180,0.06);stroke:rgba(255,255,255,0.02)}
+
+  /* focus states for accessibility */
+  :focus{outline:none}
+  input:focus, select:focus, button:focus, a:focus{box-shadow:0 0 0 4px rgba(74,163,224,0.12);border-color:var(--accent)}
 
   /* responsive */
   @media (max-width:980px){
-    .layout{grid-template-columns:1fr;grid-template-rows:auto auto auto}
-    .results{grid-column:1/2;grid-row:3/4;height:auto}
+    .layout{grid-template-columns:1fr;grid-template-rows:auto auto auto;height:auto}
+    .results{grid-column:1/2;grid-row:3/4}
     #power_table td input{width:46px}
   }
+
+  .hint{font-size:12px;color:var(--muted);margin-top:6px}
 </style>
 </head>
-<body data-theme="bright">
+<body data-theme="dark">
 
-<!-- header: title left, lang/theme right -->
+<!-- header: title left, lang selector right (theme fixed dark) -->
 <div class="header">
   <div class="title-block">
     <div>
@@ -128,68 +107,72 @@
       <div class="small" data-i18n="subtitle">Les calculs se mettent à jour automatiquement à la saisie.</div>
     </div>
   </div>
-  <div style="display:flex;gap:8px;align-items:center">
+  <!-- <div style="display:flex;gap:8px;align-items:center">
     <select id="lang" title="Langue" style="padding:8px;border-radius:8px;border:1px solid var(--panel-border);background:var(--mono-bg);color:var(--text)">
       <option value="fr">FR</option>
       <option value="en">EN</option>
     </select>
-    <select id="theme" title="Thème" style="padding:8px;border-radius:8px;border:1px solid var(--panel-border);background:var(--mono-bg);color:var(--text)">
-      <option value="bright">☀️</option>
+    <select id="theme" title="Thème" style="padding:8px;border-radius:8px;border:1px solid var(--panel-border);background:var(--mono-bg);color:var(--text)" disabled>
       <option value="dark">🌙</option>
     </select>
-  </div>
+  </div> -->
 </div>
 
 <div class="layout">
-  <!-- TOP LEFT : paramètres + petit mixeur -->
-  <div class="card params">
+      <!-- TOP LEFT : paramètres + petit mixeur -->
+      
+      <div class="card params">
     <div style="display:flex;justify-content:space-between;align-items:center">
+      <!-- Bloc titre -->
       <div>
         <strong data-i18n="params_title">Paramètres</strong>
         <div class="small" data-i18n="params_sub">Saisir les plages / bornes</div>
       </div>
-      <!-- removed lang/theme from here (moved to header) -->
-      <div class="actions">
-        <!-- kept empty to maintain spacing if needed -->
+
+      <!-- Boutons à droite -->
+      <div class="actions" style="display:flex;gap:8px;">
+        <button id="reset_params" class="btn-ghost" data-i18n="reset_btn">Réinitialiser</button>
+        <button id="clear_params" class="btn-ghost" data-i18n="clear_all">Vider</button>
       </div>
     </div>
 
-    <div style="margin-top:6px" class="compact">
-      <div class="row" style="margin-bottom:6px">
+
+    <div style="margin-top:8px" class="compact">
+      <div class="row" style="margin-bottom:8px">
         <label data-i18n="rf_range">Plage RF (MHz) :</label>
-        <input id="rf_min" type="number" value="6000" style="width:112px"> →
-        <input id="rf_max" type="number" value="18000" style="width:112px">
+        <input id="rf_min" type="number" value="6000" placeholder="min"> →
+        <input id="rf_max" type="number" value="18000" placeholder="max">
       </div>
 
-      <div class="row" style="margin-bottom:6px">
+      <div class="row" style="margin-bottom:8px">
         <label data-i18n="ol_fixed">OL fixe (MHz) :</label>
-        <input id="ol" type="number" value="10000" style="width:140px">
+        <input id="ol" type="number" value="10000" placeholder="OL">
       </div>
 
-      <div class="row" style="margin-bottom:6px">
+      <div class="row" style="margin-bottom:8px">
         <label data-i18n="mode_label">Mode :</label>
-        <select id="mode" style="width:170px">
+        <select id="mode" style="width:180px">
           <option value="supradyne">supradyne (OL &gt; RF)</option>
           <option value="infradyne">infradyne (OL &lt; RF)</option>
         </select>
       </div>
 
-      <div class="row" style="margin-bottom:6px">
+      <div class="row" style="margin-bottom:8px">
         <label data-i18n="fi_range">Plage FI (MHz) :</label>
-        <input id="fi_min" type="number" value="3500" style="width:112px"> →
-        <input id="fi_max" type="number" value="4500" style="width:112px">
+        <input id="fi_min" type="number" value="3500" placeholder="min"> →
+        <input id="fi_max" type="number" value="4500" placeholder="max">
       </div>
 
-      <div class="row" style="margin-bottom:6px">
+      <div class="row" style="margin-bottom:8px">
         <label data-i18n="m_max">m_max (±) :</label>
-        <input id="m_max" type="number" value="3" min="0" max="30" style="width:92px">
-        <label style="min-width:70px;margin-left:6px" data-i18n="n_max">n_max (±) :</label>
-        <input id="n_max" type="number" value="3" min="0" max="30" style="width:92px">
+        <input id="m_max" type="number" value="3" min="0" max="30" style="width:96px">
+        <label style="min-width:78px;margin-left:8px" data-i18n="n_max">n_max (±) :</label>
+        <input id="n_max" type="number" value="3" min="0" max="30" style="width:96px">
       </div>
     </div>
 
     <!-- petit schéma mixeur -->
-    <div style="margin-top:10px;">
+    <div style="margin-top:12px">
   <svg width="100%" height="120" viewBox="0 0 360 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="mixTitleSmall">
     <title id="mixTitleSmall">Mini schéma mixeur</title>
     <defs>
@@ -199,42 +182,36 @@
     </defs>
 
     <!-- RF left -->
-    <rect x="12" y="18" width="64" height="28" rx="5" class="svg-rf"/>
+    <rect x="12" y="18" width="64" height="28" rx="6" class="svg-rf"/>
     <text x="44" y="36" font-size="12" text-anchor="middle" fill="var(--text)">RF</text>
     <line x1="76" y1="32" x2="112" y2="32" stroke="#888" stroke-width="2" marker-end="url(#arrowSmall)"/>
 
     <!-- MIX center -->
     <g>
-      <circle cx="148" cy="32" r="28" fill="var(--panel-bg)" stroke="var(--panel-border)"/>
+      <circle cx="148" cy="32" r="28" fill="var(--mono-bg)" stroke="var(--panel-border)"/>
       <line x1="132" y1="16" x2="164" y2="48" stroke="#c33" stroke-width="2.5"/>
       <line x1="164" y1="16" x2="132" y2="48" stroke="#c33" stroke-width="2.5"/>
     </g>
 
     <!-- FI right -->
     <line x1="176" y1="32" x2="212" y2="32" stroke="#888" stroke-width="2" marker-end="url(#arrowSmall)"/>
-    <rect x="212" y="20" width="64" height="28" rx="5" class="svg-fi"/>
+    <rect x="212" y="20" width="64" height="28" rx="6" class="svg-fi"/>
     <text x="244" y="38" font-size="12" text-anchor="middle" fill="var(--text)">FI</text>
 
     <!-- OL bottom -->
-    <rect x="116" y="88" width="64" height="22" rx="5" class="svg-ol"/>
+    <rect x="116" y="88" width="64" height="22" rx="6" class="svg-ol"/>
     <text x="148" y="104" font-size="11" text-anchor="middle" fill="var(--text)">OL</text>
     <line x1="148" y1="88" x2="148" y2="60" stroke="#888" stroke-width="2" marker-end="url(#arrowSmall)"/>
   </svg>
 </div>
 
-    <!-- Buttons specific to the parameters section (moved down so they are not overlapped) -->
-    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px">
-      <button id="reset_params" class="btn-ghost" data-i18n="reset_btn">Réinitialiser</button>
-      <button id="clear_params" class="btn-ghost" data-i18n="clear_all">Vider</button>
-    </div>
-
   </div>
 
   <!-- BOTTOM LEFT : table 5x6 -->
   <div class="card power-table">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <div>
-        <strong data-i18n="table_title">Table puissances spurious (dBc) — 5×6</strong>
+        <strong data-i18n="table_title">Table puissances spurious (dBc)</strong>
         <div class="small" data-i18n="table_hint">m = 1..5, n = 0..5</div>
       </div>
       <div class="actions">
@@ -244,11 +221,11 @@
       </div>
     </div>
 
-    <div style="overflow:visible">
+    <div style="overflow:auto;max-height:calc(72vh - 160px)">
       <table id="power_table" aria-label="table puissance spurious"></table>
     </div>
 
-    <div style="margin-top:8px" class="small muted" data-i18n="table_note">
+    <div style="margin-top:8px" class="hint" data-i18n="table_note">
       Si une cellule est vide, la puissance n'est pas disponible pour ce couple (m,n).
     </div>
   </div>
@@ -260,12 +237,12 @@
 
     <div id="spurious_list" style="font-size:13px;line-height:1.25;"></div>
 
-    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
       <button id="download_report_right" class="btn" data-i18n="download_report">Télécharger rapport</button>
       <button id="copy_report_right" class="btn-ghost" data-i18n="copy_report">Copier</button>
     </div>
 
-    <div style="margin-top:12px" class="small" data-i18n="author">Auteur : <strong>François Bordas</strong> — </div>
+    <div style="margin-top:12px" class="small" data-i18n="author">Auteur : <strong>François Bordas</strong> — <a href="mailto:francois.bordas@etu.univ-amu.fr">francois.bordas@etu.univ-amu.fr</a></div>
   </div>
 </div>
 
@@ -296,7 +273,7 @@ const I18N = {
     no_calc: "Aucun calcul",
     download_report: "Télécharger rapport",
     copy_report: "Copier",
-    author: "Auteur : <strong>François Bordas</strong> — "
+    author: "Auteur : <strong>François Bordas</strong> — <a href=\"mailto:francois.bordas@etu.univ-amu.fr\">francois.bordas@etu.univ-amu.fr</a>"
   },
   en: {
     title: "Spurious — interactive tool",
@@ -322,7 +299,7 @@ const I18N = {
     no_calc: "No calculation",
     download_report: "Download report",
     copy_report: "Copy",
-    author: "Author: <strong>François Bordas</strong> — "
+    author: "Author: <strong>François Bordas</strong> — <a href=\"mailto:francois.bordas@etu.univ-amu.fr\">francois.bordas@etu.univ-amu.fr</a>"
   }
 };
 
@@ -337,10 +314,11 @@ function applyLang(lang){
 }
 
 function applyTheme(theme){
-  document.body.setAttribute('data-theme', theme);
+  // theme locked to dark
+  document.body.setAttribute('data-theme','dark');
 }
 
-/* ---------- table par défaut ---------- */
+/* ---------- table par défaut (unchanged) ---------- */
 const DEFAULT_TABLE = [
   [-29,  " -ref", -23, -10, -21, -19],
   [-85,  -61,    -73, -65, -71, -69],
@@ -353,7 +331,7 @@ function buildFixedPowerTable(prefill = null){
   const tbl = document.getElementById('power_table');
   tbl.innerHTML = '';
   const header = document.createElement('tr');
-  header.innerHTML = '<th style="width:66px">m \\ n</th>' + Array.from({length:6},(_,i)=>`<th style="width:64px">n=${i}</th>`).join('');
+  header.innerHTML = '<th style="width:66px">m \ n</th>' + Array.from({length:6},(_,i)=>`<th style="width:64px">n=${i}</th>`).join('');
   tbl.appendChild(header);
   for (let r=0;r<5;r++){
     const tr = document.createElement('tr');
@@ -362,7 +340,7 @@ function buildFixedPowerTable(prefill = null){
       const td = document.createElement('td');
       const inp = document.createElement('input');
       inp.type='text'; inp.className='mono';
-      inp.style.width='56px';
+      inp.style.width='64px';
       inp.style.boxSizing='border-box';
       inp.dataset.r = r; inp.dataset.c = c;
       if (prefill && prefill[r] && prefill[r][c] !== undefined && prefill[r][c] !== null){
@@ -461,7 +439,7 @@ function sortSpurious(list, tableProvided){
   }
 }
 
-/* Render results into the right column */
+/* Render results into the right column (unchanged logic) */
 function renderResults(){
   const rf_min = Number(document.getElementById('rf_min').value);
   const rf_max = Number(document.getElementById('rf_max').value);
@@ -549,7 +527,7 @@ function generateReportText(){
   lines.push('');
   lines.push('=== Spurious (triés) ==='); lines.push(`count ${grp.spurious.length}`); grp.spurious.forEach(s=>lines.push(`${s.m},${s.n},${s.RF_min},${s.RF_max},${s.power==null?'':s.power}`));
   lines.push('');
-  return lines.join('\n');
+  return lines.join('');
 }
 
 function downloadReportAsFile(name='spurious_report.txt'){
@@ -559,33 +537,52 @@ function downloadReportAsFile(name='spurious_report.txt'){
   const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 
-/* ---------- UI interactions ---------- */
+/* ---------- UI interactions (updated wiring for instant updates + small UX niceties) ---------- */
 function attachHandlers(){
   const ids = ['rf_min','rf_max','ol','fi_min','fi_max','m_max','n_max','mode'];
-  const debounced = debounce(renderResults, 120);
-  ids.forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener('input', debounced); });
+  // instant updates: directly call renderResults on input (no debounce) to keep calculations instant
+  ids.forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener('input', renderResults); });
 
-  // table inputs: delegate input events so any change updates results
-  document.getElementById('power_table').addEventListener('input', debounced);
+  // table inputs: delegate input events so any change updates results immediately
+  document.getElementById('power_table').addEventListener('input', (ev)=>{
+    // mark empty inputs with visual hint
+    const inp = ev.target; if (inp && inp.tagName === 'INPUT'){
+      if (inp.value.trim() === '') inp.classList.add('missing-cell'); else inp.classList.remove('missing-cell');
+    }
+    renderResults();
+  });
 
-  // header language/theme selectors
-  document.getElementById('lang').addEventListener('change', (ev)=>{
-    applyLang(ev.target.value);
-  });
-  document.getElementById('theme').addEventListener('change', (ev)=>{
-    applyTheme(ev.target.value);
-  });
+  // language selector (optionnel)
+  const langSelect = document.getElementById('lang');
+  if (langSelect) {
+    langSelect.addEventListener('change', (ev) => {
+      applyLang(ev.target.value);
+    });
+  }
+
+  // toujours appliquer la langue par défaut même si pas de select
+  applyLang('fr');
+
+
+  const themeSelect = document.getElementById('theme');
+  if (themeSelect) {
+    themeSelect.value = 'dark';
+    themeSelect.disabled = true;
+    // si tu veux garder le listener (optionnel)
+    themeSelect.addEventListener('change', (ev) => {
+      applyTheme(ev.target.value);
+    });
+  }
 
   // report buttons
   document.getElementById('download_report_right').addEventListener('click', ()=> downloadReportAsFile());
   document.getElementById('copy_report_right').addEventListener('click', ()=> {
     const txt = generateReportText();
-    navigator.clipboard?.writeText(txt).then(()=> alert('Rapport copié !'), ()=> alert('Échec copie'));
+    navigator.clipboard?.writeText(txt).then(()=> { const b=document.getElementById('copy_report_right'); b.textContent='Copié ✓'; setTimeout(()=> b.textContent='Copier',1200); }, ()=> alert('Échec copie'));
   });
 
   // PARAMS section buttons (only affect params)
   document.getElementById('reset_params').addEventListener('click', ()=> {
-    // reset only the parameter inputs (do NOT touch the spurious power table)
     document.getElementById('rf_min').value=6000; document.getElementById('rf_max').value=18000;
     document.getElementById('ol').value=10000; document.getElementById('fi_min').value=3500; document.getElementById('fi_max').value=4500;
     document.getElementById('m_max').value=3; document.getElementById('n_max').value=3; document.getElementById('mode').value='supradyne';
@@ -593,7 +590,6 @@ function attachHandlers(){
   });
 
   document.getElementById('clear_params').addEventListener('click', ()=>{
-    // clear parameter inputs (set to empty where sensible) but keep mode default
     document.getElementById('rf_min').value=''; document.getElementById('rf_max').value='';
     document.getElementById('ol').value=''; document.getElementById('fi_min').value=''; document.getElementById('fi_max').value='';
     document.getElementById('m_max').value=''; document.getElementById('n_max').value=''; document.getElementById('mode').value='supradyne';
@@ -601,16 +597,24 @@ function attachHandlers(){
   });
 
   // TABLE section buttons (only affect the power table)
-  document.getElementById('reset_table').addEventListener('click', ()=>{ buildFixedPowerTable(DEFAULT_TABLE); renderResults(); });
-  document.getElementById('clear_table').addEventListener('click', ()=>{ buildFixedPowerTable([[null,null,null,null,null,null],[null,null,null,null,null,null],[null,null,null,null,null,null],[null,null,null,null,null,null],[null,null,null,null,null,null]]); renderResults(); });
+  document.getElementById('reset_table').addEventListener('click', ()=>{ buildFixedPowerTable(DEFAULT_TABLE); renderResults(); highlightMissingCells(); });
+  document.getElementById('clear_table').addEventListener('click', ()=>{ buildFixedPowerTable([[null,null,null,null,null,null],[null,null,null,null,null,null],[null,null,null,null,null,null],[null,null,null,null,null,null],[null,null,null,null,null,null]]); renderResults(); highlightMissingCells(); });
 
   document.getElementById('download_csv').addEventListener('click', ()=> {
     const table = parseFixedPowerTable();
     const header = ['n0','n1','n2','n3','n4','n5'];
     const lines = [header.join(',')].concat(table.map(r => r.map(v => (v===null? '' : v)).join(',')));
-    const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8'});
+    const blob = new Blob([lines.join('')], {type:'text/csv;charset=utf-8'});
     const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='power_table.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   });
+
+  // visual nicety: highlight missing cells after initial build
+  highlightMissingCells();
+}
+
+function highlightMissingCells(){
+  const inputs = document.querySelectorAll('#power_table td input');
+  inputs.forEach(inp=>{ if (inp.value.trim() === '') inp.classList.add('missing-cell'); else inp.classList.remove('missing-cell'); });
 }
 
 function debounce(fn, ms=200){ let t=null; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
@@ -618,8 +622,8 @@ function debounce(fn, ms=200){ let t=null; return (...a)=>{ clearTimeout(t); t=s
 /* init */
 buildFixedPowerTable(DEFAULT_TABLE);
 attachHandlers();
-applyLang('fr');          // default FR
-applyTheme('bright');     // default theme
+applyLang('fr');
+applyTheme('dark');
 renderResults();
 </script>
 </body>
