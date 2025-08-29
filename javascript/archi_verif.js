@@ -41,6 +41,150 @@ const nStagesInput = document.getElementById('nStagesInput');
 const btnAdd = document.getElementById('btnAdd');
 const btnRemove = document.getElementById('btnRemove');
 
+/* ---------- YAML import / export (utilise js-yaml) ---------- */
+const yamlFileInput = document.getElementById('yamlFileInput');
+const btnImportYaml = document.getElementById('btnImportYaml');
+const btnExportYaml = document.getElementById('btnExportYaml');
+const yamlStatus = document.getElementById('yamlStatus');
+
+function sanitizeStageFromYaml(item, idx) {
+  const s = {};
+  s.name = item.name || (`Stage ${idx+1}`);
+  s.type = item.type || 'filter';
+
+  // gains / pertes brutes fournies dans le YAML
+  s.gain_dB = (item.gain_dB !== undefined) ? Number(item.gain_dB) : 0;
+  s.gain_dB_max = (item.gain_dB_max !== undefined) ? Number(item.gain_dB_max) : undefined;
+  s.insertion_loss_dB = (item.insertion_loss_dB !== undefined) ? Number(item.insertion_loss_dB) : 0;
+
+  // si c'est un atténuateur, définir insertion_loss comme |gain actif|
+  if (s.type === 'atten') {
+    const activeGain = (s.gain_dB_max !== undefined) ? s.gain_dB_max : s.gain_dB;
+    s.insertion_loss_dB = Math.abs(Number(activeGain || 0));
+  }
+
+  // si c'est un mixer, remplir insertion_loss avec |gain_dB| pour affichage (conversion loss)
+  if (s.type === 'mixer') {
+    s.insertion_loss_dB = Math.abs(Number(item.gain_dB !== undefined ? item.gain_dB : item.insertion_loss_dB || 0));
+  }
+
+  // NF : si fourni on l'utilise; sinon heuristiques
+  if (item.nf_dB !== undefined) {
+    s.nf_dB = Number(item.nf_dB);
+  } else {
+    if (s.type === 'filter' || s.type === 'switch') s.nf_dB = s.insertion_loss_dB;
+    else if (s.type === 'atten') s.nf_dB = Math.abs(s.insertion_loss_dB);
+    else s.nf_dB = Math.abs(s.gain_dB) || 0;
+  }
+
+  s.op1db_dBm = (item.op1db_dBm !== undefined) ? Number(item.op1db_dBm) : 1000;
+  return s;
+}
+
+
+
+function importYamlString(yamlText) {
+  let obj;
+  try {
+    obj = jsyaml.load(yamlText);
+  } catch (e) {
+    yamlStatus.textContent = 'Erreur: YAML non valide';
+    console.error(e);
+    return false;
+  }
+  if (!obj || !obj.architecture || !Array.isArray(obj.architecture)) {
+    yamlStatus.textContent = 'Erreur: clé "architecture" manquante ou non-liste';
+    return false;
+  }
+
+  // Convertir en stages au format interne (ordre haut->bas)
+  const newStages = obj.architecture.map((it, idx) => sanitizeStageFromYaml(it, idx));
+  stages = newStages.map((s, idx) => {
+    // construire objet stage complet (mêmes champs que defaultStage)
+    return {
+      name: s.name,
+      type: s.type,
+      gain_dB: (s.type === 'filter' || s.type === 'atten' || s.type === 'switch' || s.type === 'mixer') ? (s.gain_dB || 0) : (s.gain_dB || 0),
+      nf_dB: s.nf_dB,
+      insertion_loss_dB: s.insertion_loss_dB || 0,
+      op1db_dBm: s.op1db_dBm
+    };
+  });
+
+  renderStages();
+  computeAll();
+  yamlStatus.textContent = 'YAML importé';
+  setTimeout(()=>yamlStatus.textContent = '', 2500);
+  return true;
+}
+
+function importYamlFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    importYamlString(e.target.result);
+  };
+  reader.onerror = function() {
+    yamlStatus.textContent = 'Erreur lecture fichier';
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function exportYamlString() {
+  const architecture = stages.map(s => {
+    const out = { name: s.name, type: s.type };
+    if (s.type === 'filter' || s.type === 'switch') {
+      out.insertion_loss_dB = Number(s.insertion_loss_dB || 0);
+    }
+    if (s.type === 'atten') {
+      out.gain_dB = Number(s.gain_dB || 0);
+      if (s.gain_dB_max !== undefined) out.gain_dB_max = Number(s.gain_dB_max);
+    }
+    if (s.type === 'ampli' || s.type === 'mixer') {
+      out.gain_dB = Number(s.gain_dB || 0);
+      out.nf_dB = Number(s.nf_dB || 0);
+    }
+    out.op1db_dBm = Number(s.op1db_dBm || 1000);
+    return out;
+  });
+  const doc = { architecture };
+  return jsyaml.dump(doc, { noRefs: true, sortKeys: false });
+}
+
+function downloadText(filename, text) {
+  const blob = new Blob([text], { type: 'text/yaml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* event listeners for import/export controls */
+if (btnImportYaml) {
+  btnImportYaml.addEventListener('click', () => yamlFileInput.click());
+}
+if (yamlFileInput) {
+  yamlFileInput.addEventListener('change', (ev)=> {
+    const f = ev.target.files[0];
+    if (f) importYamlFile(f);
+    // clear input for re-import same file later
+    yamlFileInput.value = '';
+  });
+}
+if (btnExportYaml) {
+  btnExportYaml.addEventListener('click', () => {
+    const yamlText = exportYamlString();
+    downloadText('architecture_export.yaml', yamlText);
+    yamlStatus.textContent = 'YAML exporté';
+    setTimeout(()=>yamlStatus.textContent = '', 2000);
+  });
+}
+
+
 let stages = [];
 
 /* ========== contrôles du nombre d'étages (btn + / - / input) ========== */
@@ -200,6 +344,39 @@ function makeStageCard(idx, data) {
 
   updateVis();
 
+  // --- synchroniser les valeurs affichées dans les inputs selon le type et les valeurs importées ---
+  const s_gain_inp = root.querySelector('.s_gain');
+  const s_ins_inp = root.querySelector('.s_insertion');
+  const s_nf_inp = root.querySelector('.s_nf');
+  const s_p1_inp = root.querySelector('.s_p1');
+
+  // valeurs par défaut en nombre
+  const dataGain = Number(data.gain_dB || 0);
+  const dataGainMax = (data.gain_dB_max !== undefined) ? Number(data.gain_dB_max) : undefined;
+  const dataIns = Number(data.insertion_loss_dB || 0);
+  const activeGain = (data.type === 'atten') ? (dataGainMax !== undefined ? dataGainMax : dataGain) : dataGain;
+
+  if (data.type === 'atten') {
+    s_ins_inp.value = Math.abs(activeGain).toString();      // affichage: Atténuation positive (ex: 5)
+    s_gain_inp.value = dataGain.toString();                 // gain nominal (négatif) si besoin
+    s_nf_inp.value = (data.nf_dB !== undefined ? data.nf_dB : Math.abs(activeGain)).toString();
+  } else if (data.type === 'mixer') {
+    s_ins_inp.value = Math.abs(dataGain || dataIns).toString(); // affichage: conversion loss positive
+    s_gain_inp.value = dataGain.toString();
+    s_nf_inp.value = (data.nf_dB !== undefined ? data.nf_dB : Math.abs(dataGain)).toString();
+  } else if (data.type === 'filter' || data.type === 'switch') {
+    s_ins_inp.value = dataIns.toString();
+    s_gain_inp.value = (data.gain_dB || 0).toString();
+    s_nf_inp.value = (data.nf_dB !== undefined ? data.nf_dB : dataIns).toString();
+  } else { // ampli / default
+    s_gain_inp.value = dataGain.toString();
+    s_ins_inp.value = dataIns.toString();
+    s_nf_inp.value = (data.nf_dB !== undefined ? data.nf_dB : Math.abs(dataGain)).toString();
+  }
+
+  s_p1_inp.value = (data.op1db_dBm !== undefined ? data.op1db_dBm : 1000);
+
+
   root.querySelector('.s_type').addEventListener('change', () => { updateVis(); writeBack(); computeAll(); });
   root.querySelector('.remove').addEventListener('click', () => {
     const i = parseInt(root.dataset.index, 10);
@@ -213,15 +390,44 @@ function makeStageCard(idx, data) {
     const i = parseInt(root.dataset.index, 10);
     if (!Number.isFinite(i)) return;
     const s = stages[i];
+
     s.name = root.querySelector('.s_name').value;
     s.type = root.querySelector('.s_type').value;
-    s.gain_dB = parseFloat(root.querySelector('.s_gain').value) || 0;
-    const nfVal = root.querySelector('.s_nf').value;
-    s.nf_dB = (nfVal !== '') ? parseFloat(nfVal) : s.nf_dB || 0;
-    s.insertion_loss_dB = parseFloat(root.querySelector('.s_insertion').value) || 0;
-    s.op1db_dBm = parseFloat(root.querySelector('.s_p1').value) || 1000;
+
+    const inpGain = root.querySelector('.s_gain').value;
+    const inpIns = root.querySelector('.s_insertion').value;
+    const inpNf = root.querySelector('.s_nf').value;
+    const inpP1 = root.querySelector('.s_p1').value;
+
+    if (s.type === 'filter' || s.type === 'switch') {
+      s.insertion_loss_dB = parseFloat(inpIns) || 0;
+      // pour cohérence, garder aussi gain_dB = -insertion_loss
+      s.gain_dB = -s.insertion_loss_dB;
+      s.nf_dB = (inpNf !== '') ? parseFloat(inpNf) : s.insertion_loss_dB;
+    } else if (s.type === 'atten') {
+      // l'input insertion affiche l'atténuation positive (ex: 5dB)
+      const att = parseFloat(inpIns) || 0;
+      s.insertion_loss_dB = att;
+      // mettre gain_dB_max = -att (meilleure position), conserver gain_dB nominal si déjà présent
+      s.gain_dB_max = -att;
+      if (s.gain_dB === undefined || s.gain_dB === 0) s.gain_dB = -att;
+      s.nf_dB = (inpNf !== '') ? parseFloat(inpNf) : Math.abs(att);
+    } else if (s.type === 'mixer') {
+      // input insertion affiche conversion loss positive (ex: 6.83)
+      const conv = parseFloat(inpIns) || 0;
+      s.insertion_loss_dB = conv;
+      s.gain_dB = -conv;
+      s.nf_dB = (inpNf !== '') ? parseFloat(inpNf) : Math.abs(s.gain_dB);
+    } else { // ampli et autres
+      s.gain_dB = parseFloat(inpGain) || 0;
+      s.nf_dB = (inpNf !== '') ? parseFloat(inpNf) : Math.abs(s.gain_dB);
+      s.insertion_loss_dB = Number(s.insertion_loss_dB || 0);
+    }
+
+    s.op1db_dBm = parseFloat(inpP1) || 1000;
     renderSummaryTable();
   }
+
 
   root.querySelectorAll('input, select').forEach(el => {
     el.addEventListener('input', () => { writeBack(); computeAll(); });
@@ -275,48 +481,75 @@ function renderStages(){
 function renderSummaryTable(){
   tableBody.innerHTML='';
   stages.forEach((s, idx)=>{
-    let gainShown=0, nfShown=0;
-    if (s.type === 'filter' || s.type === 'atten' || s.type === 'switch') {
-      gainShown = -(s.insertion_loss_dB||0);
-      nfShown = (s.type==='filter' || s.type==='atten' || s.type==='switch') ? (s.insertion_loss_dB||0) : (s.nf_dB||0);
-    } else {
-      gainShown = s.gain_dB||0;
-      nfShown = s.nf_dB||0;
+    let gainShown = 0, nfShown = 0;
+
+    if (s.type === 'filter' || s.type === 'switch') {
+      gainShown = -(s.insertion_loss_dB || 0);
+      nfShown = (s.insertion_loss_dB || 0);
+    } else if (s.type === 'atten') {
+      // pour les atténuateurs, afficher la valeur 'active' = gain_dB_max si fournie, sinon gain_dB
+      gainShown = (s.gain_dB_max !== undefined) ? Number(s.gain_dB_max) : Number(s.gain_dB || 0);
+      // NF = atténuation positive
+      nfShown = Math.abs(gainShown);
+    } else if (s.type === 'mixer') {
+      // mixer: conversion loss prise depuis gain_dB (négatif si perte)
+      gainShown = Number(s.gain_dB || 0);
+      nfShown = Number(s.nf_dB || Math.abs(gainShown));
+    } else { // ampli et autres
+      gainShown = Number(s.gain_dB || 0);
+      nfShown = Number(s.nf_dB || Math.abs(gainShown));
     }
+
     const tr = document.createElement('tr');
     tr.innerHTML = `<td>${idx+1}</td><td>${s.name} (${I18N[currentLang].types[s.type]})</td><td>${gainShown.toFixed(2)}</td><td>${nfShown.toFixed(2)}</td><td>${(s.op1db_dBm||0).toFixed(2)}</td>`;
     tableBody.appendChild(tr);
   });
 }
 
+
 /* NF / P1 calculations */
 function calcNF(chain){ if (!chain.length) return NaN; let nf_tot = chain[0].nf_lin; let g_prod = chain[0].gain_lin; for (let i=1;i<chain.length;i++){ nf_tot += (chain[i].nf_lin - 1) / g_prod; g_prod *= chain[i].gain_lin; } return linToDb(nf_tot); }
 function calcP1db(chain){ const N = chain.length; if (N===0) return -Infinity; const gain_after = new Array(N).fill(1.0); let prod = 1.0; for (let idx=N-1; idx>=0; --idx){ gain_after[idx] = prod; prod *= chain[idx].gain_lin; } let inv_sum = 0; for (let i=0;i<N;i++){ const p = chain[i].p1_lin; if (!isFinite(p) || p<=0) continue; inv_sum += 1 / (p * gain_after[i]); } if (inv_sum === 0) return Infinity; const Ptot = 1 / inv_sum; return linToDb(Ptot); }
 
-function computeAll(){ if (!stages.length) {
-  gainEl.textContent = '— dB'; nfEl.textContent = '— dB'; opOutEl.textContent = '— dBm'; ipInEl.textContent = '— dBm';
-  renderSummaryTable(); return; }
-  const chainForNF=[], chainForP1=[];
-  stages.forEach((s,idx)=>{
-    let gain_dB=0, nf_dB=0;
-    if (s.type === 'filter' || s.type === 'atten' || s.type === 'switch') {
-      gain_dB = -(s.insertion_loss_dB||0);
-      nf_dB = s.insertion_loss_dB||0;
+function computeAll(){
+  if (!stages.length) {
+    gainEl.textContent = '— dB'; nfEl.textContent = '— dB'; opOutEl.textContent = '— dBm'; ipInEl.textContent = '— dBm';
+    renderSummaryTable(); return;
+  }
+
+  const chainForNF = [];
+  const chainForP1 = [];
+
+  stages.forEach((s, idx) => {
+    let gain_dB = 0;
+    let nf_dB = 0;
+
+    if (s.type === 'filter' || s.type === 'switch') {
+      // passifs: perte d'insertion positive -> gain = -insertion_loss
+      gain_dB = -(s.insertion_loss_dB || 0);
+      nf_dB = s.insertion_loss_dB || 0;
+    } else if (s.type === 'atten') {
+      // atténuateur: utiliser gain_dB_max si fourni (meilleure position), sinon gain_dB
+      gain_dB = (s.gain_dB_max !== undefined) ? Number(s.gain_dB_max) : Number(s.gain_dB || 0);
+      // nf = atténuation positive
+      nf_dB = Math.abs(gain_dB);
     } else if (s.type === 'mixer') {
-      gain_dB = -(s.insertion_loss_dB||0);
-      nf_dB = s.nf_dB || Math.abs(gain_dB);
+      // mixer: conversion loss donné par gain_dB (négatif si perte)
+      gain_dB = Number(s.gain_dB || 0);
+      nf_dB = (s.nf_dB !== undefined) ? Number(s.nf_dB) : Math.abs(gain_dB);
     } else {
-      gain_dB = s.gain_dB||0;
-      nf_dB = (s.nf_dB!==undefined && s.nf_dB!==null) ? s.nf_dB : Math.abs(gain_dB);
+      // ampli et autres
+      gain_dB = Number(s.gain_dB || 0);
+      nf_dB = (s.nf_dB !== undefined) ? Number(s.nf_dB) : Math.abs(gain_dB);
     }
 
-    const op1 = (s.op1db_dBm||1000);
+    const op1 = (s.op1db_dBm || 1000);
     const gain_lin = dbToLin(gain_dB);
     const nf_lin = dbToLin(nf_dB);
-    const p1_lin = (op1>500) ? 1e300 : Math.pow(10, op1/10);
+    const p1_lin = (op1 > 500) ? 1e300 : Math.pow(10, op1/10);
 
-    chainForNF.push({gain_lin,nf_lin,name:s.name});
-    chainForP1.push({gain_lin,p1_lin,name:s.name,op1:op1});
+    chainForNF.push({ gain_lin, nf_lin, name: s.name });
+    chainForP1.push({ gain_lin, p1_lin, name: s.name, op1: op1 });
   });
 
   const gprod = chainForNF.reduce((a,c)=>a*c.gain_lin,1);
@@ -332,6 +565,77 @@ function computeAll(){ if (!stages.length) {
 
   renderSummaryTable();
 }
+
+
+/* ---------- Exemple YAML téléchargeable (compatible import) ---------- */
+const btnDownloadExample = document.getElementById('btnDownloadExample');
+
+const exampleYamlString = `# Fichier YAML d'exemple pour test de l'import sur le site
+# L'ordre des éléments définit l'ordre de la chaîne RF (haut vers bas)
+# Chaque composant doit avoir :
+#   - name        : nom unique ou descriptif
+#   - type        : 'filter', 'switch', 'ampli', 'atten', 'mixer'
+#   - gain_dB     : pour ampli/mixer/atten
+#   - gain_dB_max : pour atténuateur (meilleure position)
+#   - insertion_loss_dB : pour filtre/switch (valeur positive)
+#   - nf_dB       : figure de bruit (optionnel pour ampli/mixer)
+#   - op1db_dBm   : OP1dB du composant
+
+architecture:
+
+  - name: Example_Filter
+    type: filter
+    insertion_loss_dB: 0.61
+    op1db_dBm: 20
+  
+  - name: Example_Switch
+    type: switch
+    insertion_loss_dB: 0.85
+    op1db_dBm: 25
+  
+  - name: Example_LNA
+    type: ampli
+    gain_dB: 15.3
+    nf_dB: 3.5
+    op1db_dBm: 23.94
+  
+  - name: Example_Attenuator
+    type: atten
+    gain_dB: -5
+    op1db_dBm: 20
+
+  - name: Example_Mixer
+    type: mixer
+    gain_dB: -6.83        # conversion loss
+    nf_dB: 7.5
+    op1db_dBm: 14
+
+`;
+
+/* fallback : downloadText existe déjà si tu as suivi les instructions précédentes.
+   Si tu n'as pas downloadText, colle aussi la fonction suivante (déjà fournie auparavant). */
+function downloadText(filename, text) {
+  const blob = new Blob([text], { type: 'text/yaml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* listener sur le bouton */
+if (btnDownloadExample) {
+  btnDownloadExample.addEventListener('click', () => {
+    downloadText('architecture_example.yaml', exampleYamlString);
+    yamlStatus.textContent = 'Exemple téléchargé';
+    setTimeout(()=> yamlStatus.textContent = '', 2000);
+  });
+}
+
+
 
 /* render help texts that were missing */
 function renderHelp() {
