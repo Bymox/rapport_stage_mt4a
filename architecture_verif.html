@@ -12,6 +12,13 @@
       <h1 id="title">RF Chain Calculator — calcul instantané</h1>
       <div id="subtitle" class="small">Gain / NF / OP1dB & IP1dB — interface interactive</div>
     </div>
+    <div id="yamlControls" style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+      <input id="yamlFileInput" type="file" accept=".yaml,.yml" style="display:none;">
+      <button id="btnImportYaml" class="ghost" title="Importer YAML">Importer YAML</button>
+      <button id="btnExportYaml" class="ghost" title="Exporter YAML">Exporter YAML</button>
+      <button id="btnDownloadExample" class="ghost" title="Télécharger exemple">Télécharger exemple</button>
+      <span id="yamlStatus" class="small" style="margin-left:8px;"></span>
+    </div>
   </header>
   <div class="layout">
     <!-- Colonne gauche : Étages -->
@@ -98,8 +105,18 @@
       </ul>
     </div>
   </div>
-  <script defer src="javascript/archi_verif.js"></script>
+  <!-- YAML parser (js-yaml) -->
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+
+<!-- zone d'import/export (dans le footer pour rester simple) -->
+<script>
+  // buttons seront créés en JS dans le DOM, mais on place un <div id="yamlControls"> dans le footer
+</script>
+
+<script defer src="javascript/archi_verif.js"></script>
+
   <footer style="padding: 8px 12px;">
+
     <div id="footer_text">Document interactif — calculs instantanés pour conception de chaîne RF.</div>
     <div class="author">François Bordas — <a href="mailto:francois.bordas@etu.univ-amu.fr">francois.bordas@etu.univ-amu.fr</a></div>
   </footer>
