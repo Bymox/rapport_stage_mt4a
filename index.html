@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hub — Rapport MT4A</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style/index.css">
+
+</head>
+<body>
+  <div class="site">
+    <header>
+      <h1>Hub — Rapport MT4A</h1>
+      <p>Regroupe les fichiers, codes et outils web développés pendant le stage. Clique sur le centre de téléchargement pour récupérer les ZIPs ou sur les outils pour lancer leur version web.</p>
+      <div class="divider" aria-hidden="true"></div>
+    </header>
+
+    <main class="hub" role="main">
+      <!-- left: download -->
+      <aside class="download-card" aria-labelledby="dl-title">
+        <div class="icon" aria-hidden="true">📥</div>
+        <h3 id="dl-title">Centre de téléchargement</h3>
+        <p>Accès à l'ensemble des codes, documents et bibliographie du rapport MT4A.</p>
+
+        <div class="actions">
+          <!-- garde le lien exact que tu veux, ouvre dans le même onglet pour téléchargement principal -->
+          <a class="btn" href="https://bymox.github.io/centre_de_telechargement_rapport_MT4A/" target="_blank" rel="noopener">Ouvrir le hub</a>
+        </div>
+
+        <div class="download-note">Les fichiers sensibles restent uniquement dans le rapport PDF.</div>
+      </aside>
+
+      <!-- right: apps -->
+      <section class="right" aria-labelledby="apps-title">
+        <div>
+          <div class="section-title" id="apps-title" style="text-align:left;margin:0 0 10px 0;color:#7fc5ff;font-weight:700">Versions web des outils</div>
+          <p style="margin:6px 0 14px 0;color:var(--muted);max-width:720px">Accède rapidement aux interfaces web des algorithmes développés (simulateurs et vérificateurs).</p>
+        </div>
+
+        <div class="card-row" role="list">
+          <a class="app-card" href="html/spurious_finder.html" target="_blank" rel="noopener" role="listitem">
+            <div class="app-icon" aria-hidden="true">📡</div>
+            <div class="app-meta">
+              <h4>Spurious Finder</h4>
+              <p>Calcul des produits de mélange et repérage des spurious sur une plage donnée.</p>
+            </div>
+          </a>
+
+          <a class="app-card" href="html/architecture_verif.html" target="_blank" rel="noopener" role="listitem">
+            <div class="app-icon" aria-hidden="true">⚙️</div>
+            <div class="app-meta">
+              <h4>Architecture Verif</h4>
+              <p>Calcul du gain, NF et OP1dB en cascade pour une chaîne RF.</p>
+            </div>
+          </a>
+
+          <a class="app-card" href="html/sfdr_calculator.html" target="_blank" rel="noopener" role="listitem">
+            <div class="app-icon" aria-hidden="true">📶</div>
+            <div class="app-meta">
+              <h4>SFDR Calculator</h4>
+               <p>Calcul du SFDR à partir du NF, de la température (°C), de la bande passante et de l’IIP3.</p>
+            </div>
+          </a>
+
+          <a class="app-card" href="html/text_comparator.html" target="_blank" rel="noopener" role="listitem">
+            <div class="app-icon" aria-hidden="true">📄</div>
+            <div class="app-meta">
+              <h4>Text Comparator</h4>
+              <p>Comparer facilement deux fichiers .txt et visualiser les différences.</p>
+            </div>
+          </a>
+
+          <a class="app-card" href="html/s2p_converter.html" target="_blank" rel="noopener" role="listitem">
+            <div class="app-icon" aria-hidden="true">🔀</div>
+            <div class="app-meta">
+              <h4>S2P Converter</h4>
+              <p>Convertir un fichier .s2p en table lisible (Hz, Sxx en dB, etc.).</p>
+            </div>
+          </a>
+
+
+          </a>
+
+        </div>
+
+        <!-- small footer/meta row -->
+        <div class="meta-row" style="margin-top:8px">
+          <div>🔒 Données sensibles uniquement dans le rapport.</div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div><strong>François Bordas</strong> — Polytech Marseille</div>
+    </footer>
+  </div>
+</body>
+</html>
